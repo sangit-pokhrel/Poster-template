@@ -1,67 +1,71 @@
-# Poster Studio
+# Template Studio
 
-Bulk news-poster generator for Facebook, Instagram and other social platforms. Interns fill in the fields, pick one of **20 templates** and download HD PNGs, or import a CSV and download every poster as one ZIP.
+Branded social-media poster generator for two Facebook pages:
 
-The rendering engine follows the logic of the [KrantiPatra poster maker](https://krantipatra.netlify.app): one HTML5 Canvas 2D pipeline at 1080 px wide, the same layout constants, and the same logo / date / red-blue bar / social footer. It is rebuilt as a typed, tested and framework-free engine so the same code draws the live preview, the thumbnails and the batch export.
+| Brand | Look | Facebook |
+|---|---|---|
+| **Nepal Scholar** | navy · maroon · gold, Playfair Display + Poppins | [page](https://www.facebook.com/profile.php?id=61577909248975) |
+| **Thesis Companion** | black & white · blue accent, Cinzel + Montserrat | [page](https://www.facebook.com/profile.php?id=61567854154156) |
 
-📄 **Full proposal & system architecture:** [docs/PROPOSAL.md](docs/PROPOSAL.md)
+Pick a template on the left, fill in the content, and the poster on the right updates as you type. Switch brands in the header and the poster's logo, colours and fonts change with it.
+
+Built from [`proposal.md`](proposal.md). The section-by-section mapping is in [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md).
 
 ## Features
 
-- **50 / 50 workspace**: every poster component on the left, the real-time poster on the right. The preview can be **minimised** to a floating mini-dock or made **full screen**.
-- **20 templates** (13 faithful ports of the reference + 7 new), filterable by category, with live thumbnails of your post.
-- **Word-level highlight**: click words to colour them.
-- **Canvas drag**: grab the headline to move it, or anywhere else to pan the photo.
-- **Photos**: upload, drag and drop, URL or samples. Cover or contain (with blurred backdrop), zoom and pan. Up to 4 photos for the collage.
-- **Sizes**: 1:1 (1080×1080), 4:5 (1080×1350), 16:9 (1080×608), 9:16 (1080×1920).
-- **Brand kit**: logo, name, website, call-out text, two brand colours, social icons, map texture.
-- **Exact Bikram Sambat date** with one click.
-- **Bulk**: many posts per session, CSV import (`*word*` = highlight), ZIP of all posts, ZIP of one post in all 20 templates, with progress and cancel.
-- English / नेपाली UI, auto-save, copy to clipboard, and a mobile layout.
+- **50 / 50 workspace**: editor on the left, live poster on the right. The preview can be **minimized** to a floating dock or opened **full screen** with zoom. On phones the editor and preview become tabs.
+- **20 templates in 10 categories**: Photo, News, Academic, Business, Promotional, Events, Sports, Trending, Social, Story. Thumbnails render in the active brand.
+- **Quick edit**: headings (with click-to-highlight words), body text, photos, badges, date, footer and logo.
+- **Advanced edit**: font, size, weight, colour, alignment, line and letter spacing, position, size, rotation, opacity, lock, visibility and layer order.
+- **On-canvas editing** (Fabric.js): select, drag, resize (text re-wraps live), rotate, snap to centre, arrow-key nudge, and double-click text to jump to its field.
+- **Photos**: drag and drop or upload JPG, PNG or WebP up to 10 MB, or pick a sample photo. Cover or contain (with blurred backdrop), zoom, pan, and multi-photo layouts. Uploads are stored in IndexedDB.
+- **Sizes**: 1:1, 4:5, 16:9 and 9:16. Layouts use normalized coordinates, so switching ratio keeps the design and circles stay circular.
+- **Date**: Nepali (exact Bikram Sambat), English or custom text, plus a "Use today" button.
+- **Export**: PNG or JPG at 1×, 2× or 3×, copy to clipboard, and **download all posters as one ZIP**. Exports are drawn on a dedicated off-screen canvas, so selection handles never appear in the files.
+- **Several posters per session**, auto-save, undo/redo (Ctrl+Z / Ctrl+Shift+Z), and reset with confirmation.
+- **Brand kit** per page: phone, website, email and handle (blank fields are dropped from footers), colours, and a replaceable logo.
 
-## Quick start
+## Run
 
 ```bash
 npm install
-npm run dev          # http://localhost:5173
+npm run dev              # http://localhost:5173
+npm run dev -- --host    # also reachable from phones on the same Wi-Fi
 ```
 
-| Script | What it does |
+| Script | |
 |---|---|
-| `npm run dev` | Dev server |
-| `npm run build` | Typecheck + production build → `dist/` |
-| `npm run typecheck` | `tsc` strict |
-| `npm run lint` | ESLint |
-| `npm test` | Vitest unit tests |
+| `npm run build` | typecheck + production build → `dist/` |
+| `npm run typecheck` / `npm run lint` / `npm test` | strict TS · ESLint · Vitest (52 tests) |
 
 Deploy `dist/` to any static host. `public/_redirects` is included for Netlify.
 
-## CSV import
-
-```csv
-template,headline,speaker,badge,date,photo,photo2,photo3,photo4
-breaking,संसदबाट *शिक्षा विधेयक* बहुमतले पारित,,,,https://example.com/photo.jpg,,,
-```
-
-Template ids: `classic purephoto minphoto multiphoto breaking flash quote editorial interview sports cinema viral factcheck weather business international split notice tribute live`.
-See [public/sample.csv](public/sample.csv).
-
-> Photos referenced by URL must allow CORS, otherwise the browser blocks export. Uploaded photos always work.
-
 ## Project structure
 
-```
+```text
 src/
-├── engine/        pure canvas renderer: types, primitives, 20 templates, renderPoster()
-├── state/         reducer, defaults, persistence (validated), CSV → posts, store provider
-├── lib/           images (LRU cache, downscaling), fonts, exporter (PNG/ZIP/clipboard), csv, i18n, BS date
-├── hooks/         assets, fonts, fullscreen, element size, local preferences
-└── components/    header, editor tabs, preview (canvas + drag), UI kit, export provider
+├── app/            App shell (brand-accented UI, shortcuts)
+├── components/
+│   ├── layout/     AppHeader, BrandSwitcher, Workspace, EditorPanel, PreviewPanel
+│   ├── templates/  TemplateBrowser (categories + live thumbnails)
+│   ├── editor/     Content (quick) · Design (advanced, layers) · Posters & Brand kit
+│   ├── canvas/     PosterCanvas (Fabric stage host, fit/zoom)
+│   └── common/     buttons, fields, sliders, toasts, confirm dialog, icons
+├── data/
+│   ├── brands.ts           the two brand kits
+│   ├── templates/*.ts      20 data-driven templates (+ authoring helpers)
+│   └── templateRegistry.ts templates + categories
+├── render/         pure Canvas 2D drawing: text layout, images, shapes, badges, logo
+├── services/       canvasRenderer (Fabric) · export · images · IndexedDB assets · storage · fonts · templates
+├── store/          Zustand: editorStore (posters, history) · uiStore (view prefs)
+├── types/          brand · element · template · poster
+└── utils/          aspect ratios & frames · dates · ids
 ```
 
 ### Adding a template
 
-1. Create a `TemplateDef` in `src/engine/templates/*.ts` using the primitives in `src/engine/primitives/`.
-2. Add it to the `TEMPLATES` array in `src/engine/templates/index.ts`.
+Add a `defineTemplate({...})` to a file in `src/data/templates/` and list it in `templateRegistry.ts`. The picker, categories, thumbnails and exports pick it up automatically, and the registry tests check its geometry.
 
-The picker, thumbnails, CSV `template` column and exports pick it up automatically.
+### Updating a brand
+
+Edit `src/data/brands.ts`, and replace the logos in `public/brands/<brand>/` (`logo.png`, `mark.png`, plus optional `-light` variants for dark backgrounds). The team can also change colours, contact details and the logo in the app's **Posters → Brand kit**.
