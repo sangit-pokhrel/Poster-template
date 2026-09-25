@@ -56,6 +56,7 @@ function readFileAsDataUrl(file) {
 }
 
 // Shows a full-size poster shrunk to `width` pixels wide.
+
 function Scaled({ width, size, children }) {
   const { w, h } = SIZES[size];
   const k = width / w;
