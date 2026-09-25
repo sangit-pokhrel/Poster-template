@@ -34,3 +34,5 @@ To make a new layout, add a component in [src/Poster.jsx](src/Poster.jsx) and re
 
 - Uploaded photos always export correctly. Photos loaded from a URL only export if the host allows cross-origin (CORS) access.
 - Rendering uses [html-to-image](https://github.com/bubkoo/html-to-image) and zipping uses [JSZip](https://stuk.github.io/jszip/).
+
+branch:sujal
