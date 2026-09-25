@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
 import { drawPoster, posterFontFamilies, posterImageSources } from '../render/drawPoster';
+import type { DrawablePoster } from '../render/drawPoster';
 import type { RenderEnv } from '../render/env';
 import { ensureFonts } from '../services/fontService';
 import { preloadImages } from '../services/imageService';
 import type { Ratio } from '../types/element';
-import type { Poster } from '../types/poster';
 import { canvasSize } from '../utils/aspectRatio';
 
 const MAX_CACHED = 200;
 const cache = new Map<string, string>();
 let queue: Promise<unknown> = Promise.resolve();
 
-async function renderThumbnail(poster: Pick<Poster, 'background' | 'elements'>, ratio: Ratio, env: RenderEnv, width: number): Promise<string | null> {
+async function renderThumbnail(poster: DrawablePoster, ratio: Ratio, env: RenderEnv, width: number): Promise<string | null> {
   await Promise.all([ensureFonts(posterFontFamilies(poster, env)), preloadImages(posterImageSources(poster, env))]);
   const { width: W, height: H } = canvasSize(ratio);
   const scale = width / W;
@@ -30,7 +30,7 @@ async function renderThumbnail(poster: Pick<Poster, 'background' | 'elements'>, 
  * output. Jobs run one at a time to keep the UI responsive; results are cached
  * by `key`, which must change whenever any input changes.
  */
-export function useThumbnail(key: string, poster: Pick<Poster, 'background' | 'elements'>, ratio: Ratio, env: RenderEnv, width = 240): string | null {
+export function useThumbnail(key: string, poster: DrawablePoster, ratio: Ratio, env: RenderEnv, width = 240): string | null {
   const [result, setResult] = useState<{ key: string; url: string } | null>(null);
 
   useEffect(() => {

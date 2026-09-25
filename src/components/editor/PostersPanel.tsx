@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { BRANDS } from '../../data/brands';
-import { getTemplate } from '../../data/templateRegistry';
+import { getAd } from '../../design/registry';
 import { useExportActions } from '../../hooks/useExportActions';
 import { useImageUrl } from '../../hooks/useImageUrl';
 import { useThumbnail } from '../../hooks/useThumbnail';
@@ -20,7 +20,7 @@ const PosterRow = memo(function PosterRow({ poster, index, active, overrides }: 
   const env = useMemo(() => buildEnv(poster, overrides, 'export'), [poster, overrides]);
   const thumb = useThumbnail(`${poster.id}:${poster.updatedAt}:${JSON.stringify(overrides ?? {})}`, poster, poster.ratio, env, 120);
   const heading = poster.elements.find((e) => e.type === 'text' && (e.role === 'heading' || e.role === 'quote'));
-  const title = heading?.type === 'text' ? heading.data.text : getTemplate(poster.templateId).name;
+  const title = heading?.type === 'text' ? heading.data.text : getAd(poster.templateId).name;
 
   const onDelete = async () => {
     if (await confirm({ title: 'Delete this poster?', message: 'This removes it from the list. You can undo with Ctrl+Z.', confirmLabel: 'Delete', danger: true })) {
@@ -38,7 +38,7 @@ const PosterRow = memo(function PosterRow({ poster, index, active, overrides }: 
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-white">{title}</p>
           <p className="truncate text-[11px] text-ink-400">
-            {BRANDS[poster.brandId].name} · {getTemplate(poster.templateId).name} · {poster.ratio}
+            {BRANDS[poster.brandId].name} · {getAd(poster.templateId).name} · {poster.ratio}
           </p>
         </div>
       </button>

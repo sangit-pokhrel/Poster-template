@@ -24,8 +24,10 @@ export function canvasSize(ratio: Ratio): { width: number; height: number } {
  * the user's own placement for that ratio, else the template's frame with its
  * ratio-specific adjustments.
  */
-export function effectiveFrame(el: Pick<PosterElement, 'frame' | 'ratioFrames' | 'userFrames'>, ratio: Ratio): Frame {
-  return el.userFrames[ratio] ?? { ...el.frame, ...el.ratioFrames[ratio] };
+type Placed = Pick<PosterElement, 'frame' | 'ratioFrames'> & { userFrames?: PosterElement['userFrames']; aspect?: number };
+
+export function effectiveFrame(el: Placed, ratio: Ratio): Frame {
+  return el.userFrames?.[ratio] ?? { ...el.frame, ...el.ratioFrames[ratio] };
 }
 
 export interface PxRect {
@@ -43,10 +45,10 @@ export function frameToPx(f: Frame, width: number, height: number): PxRect {
  * Pixel box of an element for a ratio. Elements with a fixed `aspect` are
  * shrunk around their centre so they keep their proportions.
  */
-export function elementRect(el: Pick<PosterElement, 'frame' | 'ratioFrames' | 'userFrames' | 'aspect'>, ratio: Ratio): PxRect {
+export function elementRect(el: Placed, ratio: Ratio): PxRect {
   const { width, height } = canvasSize(ratio);
   const r = frameToPx(effectiveFrame(el, ratio), width, height);
-  if (!el.aspect || el.userFrames[ratio]) return r;
+  if (!el.aspect || el.userFrames?.[ratio]) return r;
   const w = Math.min(r.w, r.h * el.aspect);
   const h = w / el.aspect;
   return { x: r.x + (r.w - w) / 2, y: r.y + (r.h - h) / 2, w, h };

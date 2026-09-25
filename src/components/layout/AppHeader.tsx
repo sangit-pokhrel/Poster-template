@@ -110,7 +110,7 @@ export function AppHeader() {
         </div>
         <div className="hidden min-w-0 lg:block">
           <h1 className="text-sm font-bold tracking-wide text-white">TEMPLATE STUDIO</h1>
-          <p className="truncate text-[11px] text-ink-400">Social posters for Nepal Scholar & Thesis Companion</p>
+          <p className="truncate text-[11px] text-ink-400">Ad posters for Nepal Scholar · Thesis Companion · Artova Research</p>
         </div>
         <BrandSwitcher />
       </div>

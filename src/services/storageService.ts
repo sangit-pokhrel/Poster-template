@@ -5,7 +5,7 @@
  * template so older saves keep working when templates gain new fields.
  */
 import { BRANDS, isBrandId } from '../data/brands';
-import { getTemplate, isTemplateId } from '../data/templateRegistry';
+import { buildLayout, isAdId } from '../design/registry';
 import type { EditorState, PersistedEditor } from '../store/editorStore';
 import { useEditorStore } from '../store/editorStore';
 import { useUiStore } from '../store/uiStore';
@@ -16,16 +16,16 @@ import { isRatio } from '../utils/aspectRatio';
 import { todayIso } from '../utils/date';
 import { collectGarbage, isAssetRef } from './assetService';
 
-export const STORAGE_KEY = 'template-studio:v1';
+export const STORAGE_KEY = 'template-studio:v2';
 const SAVE_DEBOUNCE_MS = 500;
-const ELEMENT_TYPES = new Set(['text', 'image', 'logo', 'shape', 'badge']);
+const ELEMENT_TYPES = new Set(['text', 'image', 'logo', 'shape', 'badge', 'icon']);
 
 type Json = Record<string, unknown>;
 const isObj = (v: unknown): v is Json => typeof v === 'object' && v !== null && !Array.isArray(v);
 
-function sanitizeElement(raw: unknown, templateId: string): PosterElement | null {
+function sanitizeElement(raw: unknown, templateId: string, brandId: BrandId): PosterElement | null {
   if (!isObj(raw) || typeof raw.id !== 'string' || !ELEMENT_TYPES.has(raw.type as string) || !isObj(raw.data)) return null;
-  const spec = getTemplate(templateId).elements.find((e) => e.id === raw.id && e.type === raw.type);
+  const spec = buildLayout(templateId, brandId).elements.find((e) => e.id === raw.id && e.type === raw.type);
   const merged = {
     ...(spec ?? {}),
     ...raw,
@@ -48,18 +48,19 @@ function sanitizeMeta(raw: unknown): PosterMeta {
 }
 
 function sanitizePoster(raw: unknown): Poster | null {
-  if (!isObj(raw) || typeof raw.id !== 'string' || !isTemplateId(raw.templateId)) return null;
+  if (!isObj(raw) || typeof raw.id !== 'string' || !isAdId(raw.templateId)) return null;
   const templateId = raw.templateId;
+  const brandId: BrandId = isBrandId(raw.brandId) ? raw.brandId : 'nepal-scholar';
   const elements = Array.isArray(raw.elements)
-    ? raw.elements.map((e) => sanitizeElement(e, templateId)).filter((e): e is PosterElement => e !== null)
+    ? raw.elements.map((e) => sanitizeElement(e, templateId, brandId)).filter((e): e is PosterElement => e !== null)
     : [];
   if (elements.length === 0) return null;
   return {
     id: raw.id,
     templateId,
-    brandId: isBrandId(raw.brandId) ? raw.brandId : 'nepal-scholar',
-    ratio: isRatio(raw.ratio) ? raw.ratio : getTemplate(templateId).defaultRatio,
-    background: (raw.background as Poster['background']) ?? getTemplate(templateId).background,
+    brandId,
+    ratio: isRatio(raw.ratio) ? raw.ratio : '4:5',
+    background: (raw.background as Poster['background']) ?? buildLayout(templateId, brandId).background,
     elements,
     meta: sanitizeMeta(raw.meta),
     updatedAt: typeof raw.updatedAt === 'number' ? raw.updatedAt : Date.now(),

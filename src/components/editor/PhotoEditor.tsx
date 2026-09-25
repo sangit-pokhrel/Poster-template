@@ -1,4 +1,4 @@
-import { SAMPLE } from '../../data/templates/builders';
+import { SAMPLE } from '../../design/builders';
 import { useImageUrl } from '../../hooks/useImageUrl';
 import { UploadError, importImageFile } from '../../services/imageService';
 import { useEditorStore } from '../../store/editorStore';

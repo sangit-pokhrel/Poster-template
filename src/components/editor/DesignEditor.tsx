@@ -2,14 +2,15 @@ import { FONT_FAMILIES } from '../../services/fontService';
 import type { LayerMove } from '../../store/editorStore';
 import { useEditorStore } from '../../store/editorStore';
 import { useActivePoster, useBrandFor } from '../../store/selectors';
-import type { BadgeElement, BadgeStyle, ImageElement, LogoElement, PosterElement, ShapeElement, TextElement } from '../../types/element';
+import type { BadgeElement, BadgeStyle, IconElement, ImageElement, LogoElement, PosterElement, ShapeElement, TextElement } from '../../types/element';
+import { POSTER_ICONS, POSTER_ICON_NAMES } from '../../render/icons';
 import { canvasSize, elementRect, pxToFrame } from '../../utils/aspectRatio';
 import { Button, Field, IconButton, Section, Segmented, Select, Slider, TextInput, Toggle, cx } from '../common/controls';
 import type { IconName } from '../common/Icon';
 import { Icon } from '../common/Icon';
 import { ColorField } from './ColorField';
 
-const TYPE_ICON: Record<PosterElement['type'], IconName> = { text: 'text', image: 'image', logo: 'sparkles', shape: 'grid', badge: 'tag' };
+const TYPE_ICON: Record<PosterElement['type'], IconName> = { text: 'text', image: 'image', logo: 'sparkles', shape: 'grid', badge: 'tag', icon: 'check' };
 
 function useFontOptions() {
   const poster = useActivePoster();
@@ -175,6 +176,33 @@ function LogoStyleEditor({ el }: { el: LogoElement }) {
   );
 }
 
+function IconStyleEditor({ el }: { el: IconElement }) {
+  const updateData = useEditorStore((s) => s.updateData);
+  return (
+    <Section title="Icon" icon="sparkles">
+      <div className="grid grid-cols-8 gap-1.5" role="radiogroup" aria-label="Icon">
+        {POSTER_ICON_NAMES.map((name) => (
+          <button
+            key={name}
+            type="button"
+            role="radio"
+            aria-checked={el.data.name === name}
+            title={name}
+            onClick={() => updateData<'icon'>(el.id, { name })}
+            className={cx('grid aspect-square place-items-center rounded-md border', el.data.name === name ? 'border-brand bg-brand/15 text-white' : 'border-ink-700 text-ink-300 hover:text-white')}
+          >
+            <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d={POSTER_ICONS[name]} />
+            </svg>
+          </button>
+        ))}
+      </div>
+      <ColorField label="Icon colour" value={el.data.color} onChange={(color) => updateData<'icon'>(el.id, { color })} />
+      <Slider label="Stroke" value={el.data.strokeWidth} min={1} max={3.5} step={0.1} onChange={(strokeWidth) => updateData<'icon'>(el.id, { strokeWidth })} />
+    </Section>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Position, size, rotation, opacity                                   */
 /* ------------------------------------------------------------------ */
@@ -307,6 +335,7 @@ export function DesignEditor() {
           {el.type === 'shape' && <ShapeStyleEditor el={el} />}
           {el.type === 'badge' && <BadgeStyleEditor el={el} />}
           {el.type === 'logo' && <LogoStyleEditor el={el} />}
+          {el.type === 'icon' && <IconStyleEditor el={el} />}
           <GeometryEditor el={el} />
         </>
       ) : (

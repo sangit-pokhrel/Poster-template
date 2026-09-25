@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { DEFAULT_BRAND_ID } from '../data/brands';
-import { DEFAULT_TEMPLATE_ID, getTemplate } from '../data/templateRegistry';
+import { DEFAULT_AD_ID, getAd } from '../design/registry';
 import { applyTemplate, createPoster } from '../services/templateService';
 import type { BrandId, BrandOverrides } from '../types/brand';
 import type { DataOf, ElementType, Fill, Frame, PosterElement, Ratio } from '../types/element';
@@ -60,7 +60,7 @@ const HISTORY_LIMIT = 80;
 const COALESCE_MS = 800;
 
 function initialState(): PersistedEditor {
-  const poster = createPoster(DEFAULT_TEMPLATE_ID, DEFAULT_BRAND_ID);
+  const poster = createPoster(DEFAULT_AD_ID, DEFAULT_BRAND_ID);
   return { posters: [poster], activeId: poster.id, brandOverrides: {} };
 }
 
@@ -158,11 +158,19 @@ export const useEditorStore = create<EditorState>()(
           const i = s.posters.findIndex((p) => p.id === s.activeId);
           const p = s.posters[i];
           if (!p) return;
-          s.posters[i] = applyTemplate(p, getTemplate(templateId).id);
+          s.posters[i] = applyTemplate(p, getAd(templateId).id);
           s.selectedId = null;
         }),
 
-      setBrand: (brandId) => onPoster(null, (p) => void (p.brandId = brandId)),
+      // Each brand has its own design system: re-render the same ad in the new brand's design.
+      setBrand: (brandId) =>
+        commit(null, (s) => {
+          const i = s.posters.findIndex((p) => p.id === s.activeId);
+          const p = s.posters[i];
+          if (!p || p.brandId === brandId) return;
+          s.posters[i] = applyTemplate(p, p.templateId, brandId);
+          s.selectedId = null;
+        }),
       setRatio: (ratio) => onPoster(null, (p) => void (p.ratio = ratio)),
       setMeta: (patch) => onPoster('meta', (p) => Object.assign(p.meta, patch)),
       setBackground: (fill) => onPoster('background', (p) => void (p.background = fill)),
@@ -173,7 +181,7 @@ export const useEditorStore = create<EditorState>()(
           const p = s.posters[i];
           if (!p) return;
           const fresh = createPoster(p.templateId, p.brandId, p.meta);
-          s.posters[i] = { ...fresh, id: p.id };
+          s.posters[i] = { ...fresh, id: p.id, ratio: p.ratio };
           s.selectedId = null;
         }),
 

@@ -33,6 +33,11 @@ export function resolveFill(
   h: number,
 ): string | CanvasGradient {
   if (typeof fill === 'string') return resolveColor(fill, brand);
+  if (fill.type === 'radial') {
+    const g = ctx.createRadialGradient(fill.cx * w, fill.cy * h, 0, fill.cx * w, fill.cy * h, Math.max(1, fill.r * Math.max(w, h)));
+    for (const [offset, color] of fill.stops) g.addColorStop(offset, resolveColor(color, brand));
+    return g;
+  }
   const rad = (fill.angle * Math.PI) / 180;
   const cx = w / 2;
   const cy = h / 2;

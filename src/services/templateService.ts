@@ -1,4 +1,4 @@
-import { getTemplate } from '../data/templateRegistry';
+import { buildLayout, getAd } from '../design/registry';
 import type { BrandId } from '../types/brand';
 import type { ElementRole, PosterElement } from '../types/element';
 import type { Poster, PosterMeta } from '../types/poster';
@@ -6,28 +6,29 @@ import { todayIso } from '../utils/date';
 import { newId } from '../utils/id';
 
 export const DEFAULT_META: PosterMeta = { dateMode: 'nepali', date: todayIso(), customDate: '' };
+export const DEFAULT_RATIO = '4:5' as const;
 
-/** Fresh, deep-copied element list for a template (template data is never mutated). */
-export function instantiateElements(templateId: string): PosterElement[] {
-  return structuredClone(getTemplate(templateId).elements).map((spec) => ({ ...spec, userFrames: {} }) as PosterElement);
+/** Fresh, deep-copied elements for an ad in a brand's design (layout data is never mutated). */
+export function instantiateElements(adId: string, brandId: BrandId): PosterElement[] {
+  return structuredClone(buildLayout(adId, brandId).elements).map((spec) => ({ ...spec, userFrames: {} }) as PosterElement);
 }
 
-/** Template loading logic (proposal §30): definition → elements → defaults. */
-export function createPoster(templateId: string, brandId: BrandId, meta: PosterMeta = DEFAULT_META): Poster {
-  const t = getTemplate(templateId);
+/** Template loading logic (proposal §30): ad + brand → layout → elements with defaults. */
+export function createPoster(adId: string, brandId: BrandId, meta: PosterMeta = DEFAULT_META): Poster {
+  const ad = getAd(adId);
   return {
     id: newId(),
-    templateId: t.id,
+    templateId: ad.id,
     brandId,
-    ratio: t.defaultRatio,
-    background: t.background,
-    elements: instantiateElements(t.id),
+    ratio: DEFAULT_RATIO,
+    background: structuredClone(buildLayout(ad.id, brandId).background),
+    elements: instantiateElements(ad.id, brandId),
     meta: { ...meta },
     updatedAt: Date.now(),
   };
 }
 
-/** Roles whose content the user typed/uploaded and that should survive a template switch. */
+/** Roles whose content the user typed/uploaded and that should survive a switch. */
 const CARRY_ROLES: ReadonlySet<ElementRole> = new Set([
   'heading',
   'subheading',
@@ -36,55 +37,84 @@ const CARRY_ROLES: ReadonlySet<ElementRole> = new Set([
   'quote',
   'photo',
   'photo2',
-  'photo3',
-  'photo4',
   'number',
   'cta',
   'badge',
+  'price',
+  'item',
+  'label',
+  'contact',
 ]);
 
-/**
- * Switches a poster to another template (proposal §30). Structure and styling
- * come from the new template; the user's content (text, highlights, photos
- * and photo framing) is carried over by semantic role so nothing typed is lost.
- */
-export function applyTemplate(poster: Poster, templateId: string): Poster {
-  const t = getTemplate(templateId);
-  const sourceDefaults = new Map(getTemplate(poster.templateId).elements.map((e) => [e.id, e]));
+type Carry = { text?: string; highlights?: number[]; src?: string; fit?: 'cover' | 'contain'; zoom?: number; panX?: number; panY?: number; icon?: string };
 
-  // Only content the user actually changed travels; the old template's sample text/photos don't.
-  const isUserContent = (el: PosterElement): boolean => {
-    const d = sourceDefaults.get(el.id);
-    if (!d || d.type !== el.type) return true;
-    if (el.type === 'text' && d.type === 'text') return el.data.text !== d.data.text || el.data.highlights.join() !== d.data.highlights.join();
-    if (el.type === 'badge' && d.type === 'badge') return el.data.text !== d.data.text;
-    if (el.type === 'image' && d.type === 'image') return el.data.src !== d.data.src;
-    return false;
-  };
-
-  const byRole = new Map<ElementRole, PosterElement>();
-  for (const el of poster.elements) if (!byRole.has(el.role) && isUserContent(el)) byRole.set(el.role, el);
-
-  const elements = instantiateElements(t.id).map((el) => {
-    const prev = CARRY_ROLES.has(el.role) ? byRole.get(el.role) : undefined;
-    if (!prev) return el;
-    if (el.type === 'text' && prev.type === 'text') {
-      return { ...el, data: { ...el.data, text: prev.data.text, highlights: [...prev.data.highlights] } };
-    }
-    if (el.type === 'badge' && prev.type === 'badge') {
-      return { ...el, data: { ...el.data, text: prev.data.text } };
-    }
-    if (el.type === 'image' && prev.type === 'image' && prev.data.src) {
-      const { src, fit, zoom, panX, panY } = prev.data;
-      return { ...el, visible: true, data: { ...el.data, src, fit, zoom, panX, panY } };
-    }
-    return el;
-  });
-
-  return { ...poster, templateId: t.id, ratio: t.defaultRatio, background: t.background, elements, updatedAt: Date.now() };
+function contentOf(el: PosterElement): Carry | null {
+  switch (el.type) {
+    case 'text':
+      return { text: el.data.text, highlights: el.data.highlights };
+    case 'badge':
+      return { text: el.data.text };
+    case 'image':
+      return el.data.src ? { src: el.data.src, fit: el.data.fit, zoom: el.data.zoom, panX: el.data.panX, panY: el.data.panY } : null;
+    case 'icon':
+      return { icon: el.data.name };
+    default:
+      return null;
+  }
 }
 
-/** Whether the user has customised positions or styles (so switching templates would lose work). */
+function sameContent(a: Carry | null, b: Carry | null): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function withContent(el: PosterElement, c: Carry): PosterElement {
+  if (el.type === 'text' && c.text !== undefined) return { ...el, data: { ...el.data, text: c.text, highlights: [...(c.highlights ?? [])] } };
+  if (el.type === 'badge' && c.text !== undefined) return { ...el, data: { ...el.data, text: c.text } };
+  if (el.type === 'image' && c.src) return { ...el, visible: true, data: { ...el.data, src: c.src, fit: c.fit ?? el.data.fit, zoom: c.zoom ?? 1, panX: c.panX ?? 0, panY: c.panY ?? 0 } };
+  if (el.type === 'icon' && c.icon) return { ...el, data: { ...el.data, name: c.icon } };
+  return el;
+}
+
+/**
+ * Re-renders a poster as another ad and/or in another brand's design (proposal §30).
+ * Layout and styling come from the target design; content the user changed
+ * (text, highlights, photos, icons) is carried over — by element id when the ad
+ * stays the same (brand switch), otherwise by semantic role.
+ */
+export function applyTemplate(poster: Poster, adId: string, brandId: BrandId = poster.brandId): Poster {
+  const ad = getAd(adId);
+  const sameAd = ad.id === poster.templateId;
+  const defaults = new Map(buildLayout(poster.templateId, poster.brandId).elements.map((e) => [e.id, contentOf(e as PosterElement)]));
+
+  // Only content the user actually changed travels; sample content of the old ad doesn't.
+  const edited = poster.elements.filter((el) => {
+    const c = contentOf(el);
+    return c !== null && (!defaults.has(el.id) || !sameContent(c, defaults.get(el.id) ?? null));
+  });
+  const byId = new Map(edited.map((e) => [e.id, e]));
+  const byRole = new Map<ElementRole, PosterElement>();
+  for (const el of edited) if (CARRY_ROLES.has(el.role) && !byRole.has(el.role)) byRole.set(el.role, el);
+
+  const elements = instantiateElements(ad.id, brandId).map((el) => {
+    const source = byId.get(el.id) ?? (sameAd ? undefined : CARRY_ROLES.has(el.role) ? byRole.get(el.role) : undefined);
+    const c = source ? contentOf(source) : null;
+    // Visibility toggles also survive a brand switch
+    const prev = sameAd ? poster.elements.find((p) => p.id === el.id) : undefined;
+    const base = prev && !prev.visible ? { ...el, visible: false } : el;
+    return c && source?.type === el.type ? withContent(base, c) : base;
+  });
+
+  return {
+    ...poster,
+    templateId: ad.id,
+    brandId,
+    background: structuredClone(buildLayout(ad.id, brandId).background),
+    elements,
+    updatedAt: Date.now(),
+  };
+}
+
+/** Whether the user has customised positions (so switching would lose work). */
 export function hasLayoutEdits(poster: Poster): boolean {
   return poster.elements.some((el) => Object.keys(el.userFrames).length > 0);
 }

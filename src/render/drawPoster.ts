@@ -1,17 +1,25 @@
-import type { PosterElement, Ratio } from '../types/element';
-import type { Poster } from '../types/poster';
+import type { Fill, Ratio } from '../types/element';
+import type { ElementSpec } from '../types/template';
 import { canvasSize, elementRect } from '../utils/aspectRatio';
 import { resolveFill } from './color';
 import type { RenderEnv } from './env';
-import { drawBadge, drawLogo, drawShape } from './graphics';
+import { drawBadge, drawIcon, drawLogo, drawShape } from './graphics';
 import { drawImageElement } from './image';
 import { drawText } from './text';
+
+/** Anything drawable: a template layout element or a poster element (which adds user frames). */
+export type Drawable = ElementSpec & { userFrames?: Partial<Record<Ratio, { x: number; y: number; w: number; h: number }>> };
+
+export interface DrawablePoster {
+  background: Fill;
+  elements: readonly Drawable[];
+}
 
 /**
  * Draws one element into its own local box (0,0)–(w,h). Opacity and rotation
  * are applied by the caller: `drawPoster` for export, Fabric for the live canvas.
  */
-export function drawElementContent(ctx: CanvasRenderingContext2D, el: PosterElement, w: number, h: number, env: RenderEnv): void {
+export function drawElementContent(ctx: CanvasRenderingContext2D, el: Drawable, w: number, h: number, env: RenderEnv): void {
   switch (el.type) {
     case 'text':
       return drawText(ctx, el.data, w, h, env);
@@ -23,10 +31,12 @@ export function drawElementContent(ctx: CanvasRenderingContext2D, el: PosterElem
       return drawShape(ctx, el.data, w, h, env);
     case 'badge':
       return drawBadge(ctx, el.data, w, h, env);
+    case 'icon':
+      return drawIcon(ctx, el.data, w, h, env);
   }
 }
 
-export function drawBackground(ctx: CanvasRenderingContext2D, poster: Pick<Poster, 'background'>, width: number, height: number, env: RenderEnv): void {
+export function drawBackground(ctx: CanvasRenderingContext2D, poster: Pick<DrawablePoster, 'background'>, width: number, height: number, env: RenderEnv): void {
   ctx.fillStyle = resolveFill(ctx, poster.background, env.brand, width, height);
   ctx.fillRect(0, 0, width, height);
 }
@@ -37,7 +47,7 @@ export function drawBackground(ctx: CanvasRenderingContext2D, poster: Pick<Poste
  * The live Fabric canvas calls the very same `drawElementContent`, so the
  * preview and the downloaded file match.
  */
-export function drawPoster(ctx: CanvasRenderingContext2D, poster: Pick<Poster, 'background' | 'elements'>, ratio: Ratio, env: RenderEnv): void {
+export function drawPoster(ctx: CanvasRenderingContext2D, poster: DrawablePoster, ratio: Ratio, env: RenderEnv): void {
   const { width, height } = canvasSize(ratio);
   ctx.save();
   drawBackground(ctx, poster, width, height, env);
@@ -56,7 +66,7 @@ export function drawPoster(ctx: CanvasRenderingContext2D, poster: Pick<Poster, '
 }
 
 /** Every image URL a poster needs, for preloading before export. */
-export function posterImageSources(poster: Pick<Poster, 'elements'>, env: Pick<RenderEnv, 'brand'>): string[] {
+export function posterImageSources(poster: Pick<DrawablePoster, 'elements'>, env: Pick<RenderEnv, 'brand'>): string[] {
   const a = env.brand.assets;
   const srcs = new Set<string>();
   for (const el of poster.elements) {
@@ -71,7 +81,7 @@ export function posterImageSources(poster: Pick<Poster, 'elements'>, env: Pick<R
 }
 
 /** Every font family a poster needs, for preloading. */
-export function posterFontFamilies(poster: Pick<Poster, 'elements'>, env: Pick<RenderEnv, 'brand'>): string[] {
+export function posterFontFamilies(poster: Pick<DrawablePoster, 'elements'>, env: Pick<RenderEnv, 'brand'>): string[] {
   const fonts = new Set<string>([env.brand.fonts.heading, env.brand.fonts.body]);
   for (const el of poster.elements) {
     if (el.type === 'text' || el.type === 'badge') {

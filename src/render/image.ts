@@ -6,6 +6,19 @@ export function shapePath(ctx: CanvasRenderingContext2D, shape: ImageShape, w: n
   ctx.beginPath();
   if (shape === 'circle') {
     ctx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+  } else if (shape === 'diamond') {
+    ctx.moveTo(w / 2, 0);
+    ctx.lineTo(w, h / 2);
+    ctx.lineTo(w / 2, h);
+    ctx.lineTo(0, h / 2);
+    ctx.closePath();
+  } else if (shape === 'slant') {
+    const k = w * 0.14;
+    ctx.moveTo(k, 0);
+    ctx.lineTo(w, 0);
+    ctx.lineTo(w - k, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
   } else if (shape === 'arch') {
     const r = Math.min(w / 2, h);
     ctx.moveTo(0, h);
@@ -40,6 +53,17 @@ export function drawImageElement(ctx: CanvasRenderingContext2D, d: ImageData, w:
   const img = d.src ? env.images.get(d.src) : null;
   // Proposal §12: unused photo slots disappear from the final output.
   if (!img && env.mode === 'export') return;
+
+  if (d.shadow) {
+    ctx.save();
+    ctx.shadowColor = 'rgba(10, 10, 30, 0.35)';
+    ctx.shadowBlur = Math.max(18, Math.min(w, h) * 0.06);
+    ctx.shadowOffsetY = Math.max(6, Math.min(w, h) * 0.02);
+    ctx.fillStyle = '#000';
+    shapePath(ctx, d.shape, w, h, d.radius);
+    ctx.fill();
+    ctx.restore();
+  }
 
   ctx.save();
   shapePath(ctx, d.shape, w, h, d.radius);

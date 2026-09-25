@@ -1,4 +1,4 @@
-export type BrandId = 'nepal-scholar' | 'thesis-companion';
+export type BrandId = 'nepal-scholar' | 'thesis-companion' | 'artova-research';
 
 export interface BrandPalette {
   /** Main brand colour: bars, headings, key shapes. */

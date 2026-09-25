@@ -30,7 +30,16 @@ export interface LinearGradient {
   stops: Array<[offset: number, color: ColorValue]>;
 }
 
-export type Fill = ColorValue | LinearGradient;
+export interface RadialGradient {
+  type: 'radial';
+  /** Centre and radius as fractions of the box (r relative to the larger side). */
+  cx: number;
+  cy: number;
+  r: number;
+  stops: Array<[offset: number, color: ColorValue]>;
+}
+
+export type Fill = ColorValue | LinearGradient | RadialGradient;
 
 /** Semantic role: drives Quick Edit labels and content carry-over between templates. */
 export type ElementRole =
@@ -51,7 +60,10 @@ export type ElementRole =
   | 'footer'
   | 'quote'
   | 'label'
-  | 'number';
+  | 'number'
+  | 'item'
+  | 'price'
+  | 'contact';
 
 export interface TextData {
   /** May contain tokens: {brand} {tagline} {website} {handle} {phone} {email} {date}. */
@@ -74,9 +86,12 @@ export interface TextData {
   /** Shrink the font (down to 50 %) until the text fits the box. */
   autoFit: boolean;
   shadow: boolean;
+  /** Glyph drawn before every line of text (e.g. ✓), in `bulletColor`. Empty = none. */
+  bullet: string;
+  bulletColor: ColorValue;
 }
 
-export type ImageShape = 'rect' | 'circle' | 'arch';
+export type ImageShape = 'rect' | 'circle' | 'arch' | 'diamond' | 'slant';
 
 export interface ImageData {
   /** `asset:<id>` (IndexedDB), same-origin path, or CORS-enabled URL. Empty = placeholder. */
@@ -95,6 +110,8 @@ export interface ImageData {
   /** Colour/gradient drawn over the photo inside its frame (e.g. a fade to paper). */
   overlay: Fill | null;
   placeholder: string;
+  /** Soft drop shadow under the frame. */
+  shadow: boolean;
 }
 
 export interface LogoData {
@@ -106,7 +123,20 @@ export interface LogoData {
   align: 'left' | 'center' | 'right';
 }
 
-export type ShapeKind = 'rect' | 'ellipse' | 'line' | 'triangle' | 'dots' | 'quote' | 'stripes';
+export type ShapeKind =
+  | 'rect'
+  | 'ellipse'
+  | 'line'
+  | 'triangle'
+  | 'dots'
+  | 'quote'
+  | 'stripes'
+  | 'ring'
+  | 'arch'
+  | 'polygon'
+  | 'burst'
+  | 'grid'
+  | 'diamond';
 
 export interface ShapeData {
   kind: ShapeKind;
@@ -114,9 +144,22 @@ export interface ShapeData {
   radius: number;
   stroke: ColorValue | null;
   strokeWidth: number;
+  /** `polygon`: flat list of normalized x,y pairs inside the box. */
+  points: number[];
+  shadow: boolean;
 }
 
-export type BadgeStyle = 'pill' | 'tag' | 'outline' | 'ribbon' | 'circle' | 'underline';
+export type BadgeStyle = 'pill' | 'tag' | 'outline' | 'ribbon' | 'circle' | 'underline' | 'burst';
+
+export interface IconData {
+  /** Name from the poster icon set (`design/icons.ts`). */
+  name: string;
+  color: ColorValue;
+  /** Tile behind the icon; null = bare icon. */
+  bg: Fill | null;
+  bgShape: 'circle' | 'rounded' | 'square';
+  strokeWidth: number;
+}
 
 export interface BadgeData {
   text: string;
@@ -128,6 +171,8 @@ export interface BadgeData {
   fontWeight: number;
   uppercase: boolean;
   letterSpacing: number;
+  /** Corner radius for `tag`; undefined = style default. */
+  radius?: number;
 }
 
 interface ElementBase {
@@ -160,8 +205,9 @@ export type ImageElement = ElementBase & { type: 'image'; data: ImageData };
 export type LogoElement = ElementBase & { type: 'logo'; data: LogoData };
 export type ShapeElement = ElementBase & { type: 'shape'; data: ShapeData };
 export type BadgeElement = ElementBase & { type: 'badge'; data: BadgeData };
+export type IconElement = ElementBase & { type: 'icon'; data: IconData };
 
-export type PosterElement = TextElement | ImageElement | LogoElement | ShapeElement | BadgeElement;
+export type PosterElement = TextElement | ImageElement | LogoElement | ShapeElement | BadgeElement | IconElement;
 export type ElementType = PosterElement['type'];
 
 export type DataOf<T extends ElementType> = Extract<PosterElement, { type: T }>['data'];

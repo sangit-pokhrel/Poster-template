@@ -42,6 +42,10 @@ export interface LayoutWord {
 export interface LayoutLine {
   words: LayoutWord[];
   width: number;
+  /** First line of a paragraph (where a bullet glyph goes). */
+  first: boolean;
+  /** Extra space above this line (between bullet items). */
+  gapBefore: number;
 }
 
 export interface TextLayout {
@@ -59,20 +63,32 @@ export interface LayoutInput {
   fontSize: number;
   lineHeight: number;
   autoFit: boolean;
+  /** Hanging indent (as a multiple of the font size) for bulleted paragraphs; 0 = none. */
+  indentEm?: number;
+  /** Space between paragraphs (as a multiple of the font size). */
+  paragraphGapEm?: number;
   /** Width of `text` at `size` (including letter spacing). */
   measure: (text: string, size: number) => number;
 }
 
 function wrapAt(input: LayoutInput, size: number): TextLayout {
   const space = input.measure(' ', size);
+  const indent = (input.indentEm ?? 0) * size;
+  const gap = (input.paragraphGapEm ?? 0) * size;
+  const maxWidth = input.boxWidth - indent;
   const lines: LayoutLine[] = [];
-  for (const para of input.paragraphs) {
+  input.paragraphs.forEach((para, p) => {
     let current: LayoutWord[] = [];
     let width = 0;
+    let first = true;
+    const push = () => {
+      lines.push({ words: current, width, first, gapBefore: first && p > 0 ? gap : 0 });
+      first = false;
+    };
     for (const w of para) {
       const ww = input.measure(w.text, size);
-      if (current.length > 0 && width + space + ww > input.boxWidth) {
-        lines.push({ words: current, width });
+      if (current.length > 0 && width + space + ww > maxWidth) {
+        push();
         current = [];
         width = 0;
       }
@@ -81,14 +97,17 @@ function wrapAt(input: LayoutInput, size: number): TextLayout {
       width += ww;
     }
     // empty paragraph = blank line
-    lines.push({ words: current, width });
-  }
+    push();
+  });
   const lineHeightPx = size * input.lineHeight;
-  return { fontSize: size, lineHeightPx, spaceWidth: space, lines, height: lines.length * lineHeightPx };
+  const height = lines.reduce((h, l) => h + lineHeightPx + l.gapBefore, 0);
+  return { fontSize: size, lineHeightPx, spaceWidth: space, lines, height };
 }
 
-const fits = (l: TextLayout, input: LayoutInput) =>
-  l.height <= input.boxHeight + 0.5 && l.lines.every((line) => line.width <= input.boxWidth + 0.5);
+const fits = (l: TextLayout, input: LayoutInput) => {
+  const indent = (input.indentEm ?? 0) * l.fontSize;
+  return l.height <= input.boxHeight + 0.5 && l.lines.every((line) => line.width + indent <= input.boxWidth + 0.5);
+};
 
 /** Greedy word wrap; with `autoFit`, shrinks the font in 4 % steps (min 50 %) until it fits. */
 export function layoutText(input: LayoutInput): TextLayout {
@@ -144,7 +163,19 @@ export function drawText(ctx: CanvasRenderingContext2D, d: TextData, w: number, 
     ctx.font = textFont(d, size, env);
     return ctx.measureText(text).width;
   };
-  const layout = layoutText({ paragraphs, boxWidth: w, boxHeight: h, fontSize: d.fontSize, lineHeight: d.lineHeight, autoFit: d.autoFit, measure });
+  const bulleted = d.bullet.trim().length > 0;
+  const layout = layoutText({
+    paragraphs,
+    boxWidth: w,
+    boxHeight: h,
+    fontSize: d.fontSize,
+    lineHeight: d.lineHeight,
+    autoFit: d.autoFit,
+    indentEm: bulleted ? 1.35 : 0,
+    paragraphGapEm: bulleted ? 0.35 : 0,
+    measure,
+  });
+  const indent = bulleted ? layout.fontSize * 1.35 : 0;
 
   ctx.font = textFont(d, layout.fontSize, env);
   ctx.textBaseline = 'middle';
@@ -159,9 +190,19 @@ export function drawText(ctx: CanvasRenderingContext2D, d: TextData, w: number, 
     ctx.shadowOffsetY = layout.fontSize * 0.04;
   }
 
-  layout.lines.forEach((line, i) => {
-    const cy = top + i * layout.lineHeightPx + layout.lineHeightPx / 2;
-    let x = d.align === 'left' ? 0 : d.align === 'right' ? w - line.width : (w - line.width) / 2;
+  let y = top;
+  layout.lines.forEach((line) => {
+    y += line.gapBefore;
+    const cy = y + layout.lineHeightPx / 2;
+    y += layout.lineHeightPx;
+    const avail = w - indent;
+    let x = indent + (d.align === 'left' ? 0 : d.align === 'right' ? avail - line.width : (avail - line.width) / 2);
+    if (bulleted && line.first && line.words.length > 0) {
+      ctx.save();
+      ctx.fillStyle = resolveColor(d.bulletColor, env.brand);
+      ctx.fillText(d.bullet, 0, cy);
+      ctx.restore();
+    }
     for (const word of line.words) {
       if (word.highlighted && d.highlightStyle === 'marker') {
         ctx.save();

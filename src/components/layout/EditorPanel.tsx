@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { getTemplate } from '../../data/templateRegistry';
+import { getAd } from '../../design/registry';
 import { useActivePoster } from '../../store/selectors';
 import { useUiStore } from '../../store/uiStore';
 import type { EditorMode, EditorTab } from '../../store/uiStore';
@@ -12,7 +12,7 @@ import { PostersPanel } from '../editor/PostersPanel';
 import { TemplateBrowser } from '../templates/TemplateBrowser';
 
 const TABS: ReadonlyArray<{ id: EditorTab; label: string; icon: IconName; advancedOnly?: boolean }> = [
-  { id: 'templates', label: 'Templates', icon: 'grid' },
+  { id: 'templates', label: 'Ads', icon: 'grid' },
   { id: 'content', label: 'Content', icon: 'text' },
   { id: 'design', label: 'Design', icon: 'sliders', advancedOnly: true },
   { id: 'posters', label: 'Posters', icon: 'posters' },
@@ -77,11 +77,11 @@ export function EditorPanel() {
 
       <div className="flex items-center justify-between gap-2 border-b border-ink-800/60 px-4 py-2 text-[11px] text-ink-400">
         <span className="truncate">
-          Template: <span className="font-medium text-ink-200">{getTemplate(poster.templateId).name}</span>
+          Ad: <span className="font-medium text-ink-200">{getAd(poster.templateId).name}</span>
         </span>
         {tab !== 'templates' && (
           <button type="button" className="shrink-0 text-brand hover:underline" onClick={() => set('tab', 'templates')}>
-            Change template
+            Change ad
           </button>
         )}
       </div>

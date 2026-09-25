@@ -8,6 +8,8 @@
 export const FONT_FAMILIES = [
   'Poppins',
   'Montserrat',
+  'Inter',
+  'Space Grotesk',
   'Playfair Display',
   'Cinzel',
   'Merriweather',

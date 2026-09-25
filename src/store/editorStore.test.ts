@@ -7,7 +7,7 @@ const store = () => useEditorStore.getState();
 const active = () => selectActivePoster(store());
 
 beforeEach(() => {
-  const p = createPoster('news-classic', 'nepal-scholar');
+  const p = createPoster('thesis-support', 'nepal-scholar');
   store().hydrate({ posters: [p], activeId: p.id, brandOverrides: {} });
 });
 
@@ -22,10 +22,10 @@ describe('editor store', () => {
 
   it('toggles highlighted words', () => {
     const h = active().elements.find((e) => e.role === 'heading')!;
-    store().toggleHighlight(h.id, 5);
+    const before = h.type === 'text' ? h.data.highlights : [];
     store().toggleHighlight(h.id, 0);
     const el = active().elements.find((e) => e.id === h.id)!;
-    expect(el.type === 'text' && el.data.highlights.includes(5)).toBe(true);
+    expect(el.type === 'text' && el.data.highlights.includes(0)).toBe(!before.includes(0));
   });
 
   it('undo / redo restore previous posters', () => {
@@ -71,9 +71,9 @@ describe('editor store', () => {
     expect(active().brandId).toBe('thesis-companion');
     store().removePoster(active().id);
     expect(store().posters).toHaveLength(1);
-    store().addPoster('social-quote');
+    store().addPoster('tip-quote-einstein');
     expect(store().posters).toHaveLength(2);
-    expect(active().templateId).toBe('social-quote');
+    expect(active().templateId).toBe('tip-quote-einstein');
     expect(active().brandId).toBe('thesis-companion');
   });
 
@@ -92,12 +92,12 @@ describe('editor store', () => {
 
 describe('persistence sanitizing', () => {
   it('rejects unknown versions and empty data', () => {
-    expect(sanitizePersisted({ version: 2 })).toBeNull();
+    expect(sanitizePersisted({ version: 9 })).toBeNull();
     expect(sanitizePersisted({ version: 1, posters: [] })).toBeNull();
   });
 
   it('repairs invalid fields and fills new template fields', () => {
-    const p = createPoster('news-classic', 'nepal-scholar');
+    const p = createPoster('thesis-support', 'nepal-scholar');
     const heading = p.elements.find((e) => e.role === 'heading')!;
     const raw = JSON.parse(JSON.stringify({ version: 1, posters: [p], activeId: 'missing', brandOverrides: { 'nepal-scholar': { phone: '98' }, bogus: {} } }));
     raw.posters[0].brandId = 'unknown';
