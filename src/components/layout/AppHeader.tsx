@@ -106,9 +106,7 @@ export function AppHeader() {
   return (
     <header className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-2 border-b border-ink-800 bg-ink-950/95 px-3 py-2 sm:px-4">
       <div className="flex min-w-0 items-center gap-3">
-        <div className="hidden size-9 shrink-0 place-items-center rounded-xl bg-brand text-brand-ink sm:grid" aria-hidden="true">
-          <Icon name="sparkles" size={18} />
-        </div>
+        <img src="/favicon.png" alt="Artova Designs" className="hidden size-9 shrink-0 object-contain sm:block" />
         <div className="hidden min-w-0 lg:block">
           <h1 className="text-sm font-bold tracking-wide text-white">ARTOVA DESIGNS</h1>
           <p className="truncate text-[11px] text-ink-400">Ad posters for Nepal Scholar · Thesis Companion · Artova Research</p>

@@ -60,7 +60,7 @@ describe('resolveTokens', () => {
 describe('resolveColor', () => {
   it('maps brand tokens and alpha', () => {
     expect(resolveColor('brand.accent', brand)).toBe(brand.palette.accent);
-    expect(resolveColor('brand.primary/50', brand)).toBe('rgba(31, 42, 60, 0.5)');
+    expect(resolveColor('brand.primary/50', brand)).toBe('rgba(17, 17, 17, 0.5)');
     expect(resolveColor('#123456', brand)).toBe('#123456');
   });
 });

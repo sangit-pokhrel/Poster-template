@@ -84,6 +84,24 @@ function colorName(hex: string): string {
 /* Generation                                                          */
 /* ------------------------------------------------------------------ */
 
+/** Themes from a fixed family (e.g. Nepal Scholar: blacks × yellows on white). */
+function familyThemes(palette: BrandPalette, family: NonNullable<Brand['themeFamily']>): ColorTheme[] {
+  const themes: ColorTheme[] = [{ index: 0, name: 'Logo colours', palette: { ...palette } }];
+  for (const [dn, dark] of family.darks) {
+    for (const [pn, pop] of family.pops) {
+      if (themes.length >= THEME_COUNT) break;
+      if (dark === palette.primary && pop === palette.accent) continue;
+      const p = hexToHsl(pop);
+      themes.push({
+        index: themes.length,
+        name: `${dn} & ${pn}`,
+        palette: { primary: dark, secondary: hslToHex({ ...p, l: clamp(p.l - 16, 28, 40) }), accent: pop, ink: '#111111', paper: '#ffffff' },
+      });
+    }
+  }
+  return themes;
+}
+
 /** Distinct seed colours (most important first); light and dark tones of one hue both count. */
 function seedColors(colors: string[]): Hsl[] {
   const out: Hsl[] = [];
@@ -103,10 +121,15 @@ const cache = new Map<string, ColorTheme[]>();
  * logo's own colours first (including light/dark tones of the same hue), then
  * gentle harmonies of the main logo hues (complement, analogous, split).
  */
-export function brandThemes(brand: Pick<Brand, 'palette' | 'themeSeeds'>, logoColors: readonly string[] = []): ColorTheme[] {
-  const key = JSON.stringify([brand.palette, brand.themeSeeds, logoColors]);
+export function brandThemes(brand: Pick<Brand, 'palette' | 'themeSeeds' | 'themeFamily'>, logoColors: readonly string[] = []): ColorTheme[] {
+  const key = JSON.stringify([brand.palette, brand.themeSeeds, brand.themeFamily, logoColors]);
   const hit = cache.get(key);
   if (hit) return hit;
+  if (brand.themeFamily) {
+    const themes = familyThemes(brand.palette, brand.themeFamily);
+    cache.set(key, themes);
+    return themes;
+  }
 
   const p = brand.palette;
   const seeds = seedColors([...logoColors, p.primary, p.accent, p.secondary, ...brand.themeSeeds]);

@@ -17,12 +17,13 @@ export const BRANDS: Record<BrandId, Brand> = {
     phone: '9809816596',
     email: 'nepalscholar61@gmail.com',
     address: 'Chardobato, Thimi, Bhaktapur',
+    // Yellow · white · black, as the team uses on the page
     palette: {
-      primary: '#1f2a3c', // slate navy (mountain / book)
-      secondary: '#6d2f2c', // maroon (book gradient)
-      accent: '#c9a45c', // gold (pen nib & wordmark)
-      ink: '#1b2230',
-      paper: '#fbf8f2',
+      primary: '#111111', // black
+      secondary: '#b58500', // deep yellow for bands and highlights on white
+      accent: '#f5b700', // yellow (the gold of the pen nib and wordmark)
+      ink: '#111111',
+      paper: '#ffffff',
     },
     fonts: { heading: 'Playfair Display', body: 'Poppins' },
     assets: {
@@ -31,8 +32,11 @@ export const BRANDS: Record<BrandId, Brand> = {
       logoLight: '/brands/nepal-scholar/logo-light.png',
       markLight: '/brands/nepal-scholar/mark-light.png',
     },
-    // Poster navy, sunflower gold and heritage red from the page's own posters
-    themeSeeds: ['#0f2a4a', '#f2a900', '#a3221d', '#1d4e89'],
+    themeSeeds: ['#111111', '#f5b700'],
+    themeFamily: {
+      darks: [['Jet', '#111111'], ['Charcoal', '#1f1f1f'], ['Espresso', '#1c160c']],
+      pops: [['Sunflower', '#f5b700'], ['Gold', '#e0a100'], ['Lemon', '#f7d117'], ['Amber', '#ffab00'], ['Honey', '#f2c14e']],
+    },
   },
   'thesis-companion': {
     id: 'thesis-companion',

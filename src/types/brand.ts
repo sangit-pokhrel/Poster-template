@@ -47,6 +47,11 @@ export interface Brand {
    * are generated from these plus the palette (see `design/themes.ts`).
    */
   themeSeeds: string[];
+  /**
+   * A fixed colour family instead of generated themes: every theme pairs one
+   * of these dark bases with one of these accents on white paper.
+   */
+  themeFamily?: { darks: Array<[name: string, hex: string]>; pops: Array<[name: string, hex: string]> };
 }
 
 /** User edits to a brand kit (contact details, colours, uploaded logo). */

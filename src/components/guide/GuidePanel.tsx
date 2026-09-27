@@ -195,6 +195,11 @@ function Themes() {
         contrasting accent (logo colours first, then colours that harmonise with them). Every theme keeps text readable: dark bases carry white text, and accents are lightened
         on dark backgrounds and deepened on white.
       </P>
+      {BRANDS[poster.brandId].themeFamily && (
+        <P>
+          <B>{BRANDS[poster.brandId].name}</B> uses a fixed <B>yellow · white · black</B> family: every theme is one of its blacks with one of its yellows on white paper.
+        </P>
+      )}
       <ul className="grid gap-1.5 sm:grid-cols-2">
         {themes.map((t) => (
           <li key={t.index} className={cx('flex items-center gap-2 rounded-md px-2 py-1 text-[12px]', t.index === today ? 'bg-brand/10 text-white' : 'text-ink-300')}>
@@ -259,7 +264,7 @@ function Logos() {
     <Section title="Adding or replacing logos" icon="image" defaultOpen={false}>
       <Steps
         items={[
-          ['Put the files in the page’s folder', <><Kbd>public/logo/nepal-scholar/</Kbd>, <Kbd>public/logo/thesis-companion/</Kbd> or <Kbd>public/logo/artova-research/</Kbd>. PNG with a transparent background works best; SVG, JPG and WebP also work.</>],
+          ['Put the files in the page’s folder', <><Kbd>public/logo/nepal-scholar/</Kbd>, <Kbd>public/logo/thesis-companion/</Kbd> or <Kbd>public/logo/artova-research/</Kbd>. PNG with a transparent background works best; SVG, JPG and WebP also work. The team’s original files are kept in each folder’s <Kbd>source/</Kbd>, and <Kbd>python scripts/prepare-logos.py</Kbd> turns them into transparent horizontal logos, symbols and white versions for dark designs.</>],
           ['Name them by role', <>Any name is the full logo. Put <Kbd>mark</Kbd>, <Kbd>icon</Kbd> or <Kbd>symbol</Kbd> in the name for the symbol-only version, and <Kbd>light</Kbd> or <Kbd>white</Kbd> for versions made for dark backgrounds. One file on its own is used everywhere.</>],
           ['Reload', <>The dev server reloads by itself. The logo appears on every poster, and the {THEME_COUNT} colour themes are regenerated from the logo’s colours.</>],
         ]}
@@ -353,9 +358,12 @@ export function GuidePanel() {
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-xl border border-brand/40 bg-brand/10 p-4">
-        <p className="text-base font-bold text-white">Artova Designs guide</p>
+        <p className="flex items-center gap-2 text-base font-bold text-white">
+          <img src="/favicon.png" alt="" className="size-7 object-contain" />
+          Artova Designs guide
+        </p>
         <p className="mt-1 text-[12px] leading-relaxed text-ink-300">
-          Poster studio for Nepal Scholar, Thesis Companion and Artova Research: {STUDIO_ADS.length} studio designs and {CLASSIC_ADS.length} brand classics, with {THEME_COUNT} logo-based colour themes per page.
+          Poster studio by Artova for Nepal Scholar, Thesis Companion and Artova Research: {STUDIO_ADS.length} studio designs and {CLASSIC_ADS.length} brand classics, with {THEME_COUNT} logo-based colour themes per page.
         </p>
       </div>
       <Today />

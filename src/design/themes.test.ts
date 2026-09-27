@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BRANDS, BRAND_IDS } from '../data/brands';
-import { luminance } from '../render/color';
+import { hexToHsl, luminance } from '../render/color';
 import { THEME_COUNT, brandThemes, dailyThemeIndex, dayNumber, themeIndexFor } from './themes';
 
 describe('colour themes', () => {
@@ -21,8 +21,8 @@ describe('colour themes', () => {
   });
 
   it('follows colours read from a dropped logo', () => {
-    const withLogo = brandThemes(BRANDS['nepal-scholar'], ['#0a7d3b', '#f5c400']);
-    expect(withLogo.map((t) => t.palette.accent)).not.toEqual(brandThemes(BRANDS['nepal-scholar']).map((t) => t.palette.accent));
+    const withLogo = brandThemes(BRANDS['thesis-companion'], ['#0a7d3b', '#f5c400']);
+    expect(withLogo.map((t) => t.palette.accent)).not.toEqual(brandThemes(BRANDS['thesis-companion']).map((t) => t.palette.accent));
     expect(withLogo).toHaveLength(THEME_COUNT);
   });
 
@@ -51,5 +51,17 @@ describe('daily rotation', () => {
   it('respects a pinned theme', () => {
     expect(themeIndexFor(4, 'nepal-scholar', '2026-09-27')).toBe(4);
     expect(themeIndexFor('auto', 'nepal-scholar', '2026-09-27')).toBe(dailyThemeIndex('nepal-scholar', '2026-09-27'));
+  });
+});
+
+describe('Nepal Scholar colour family', () => {
+  it('keeps every theme yellow, white and black', () => {
+    for (const t of brandThemes(BRANDS['nepal-scholar'])) {
+      const accent = hexToHsl(t.palette.accent);
+      expect(accent.h, t.name).toBeGreaterThanOrEqual(35);
+      expect(accent.h, t.name).toBeLessThanOrEqual(55);
+      expect(luminance(t.palette.primary), t.name).toBeLessThan(0.02);
+      expect(t.palette.paper).toBe('#ffffff');
+    }
   });
 });

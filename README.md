@@ -4,7 +4,7 @@ Poster studio for three academic-services Facebook pages. Pick a design, type yo
 
 | Page | Facebook | Logo colours |
 |---|---|---|
-| **Nepal Scholar** | [page](https://www.facebook.com/profile.php?id=61577909248975) | navy · maroon · gold |
+| **Nepal Scholar** | [page](https://www.facebook.com/profile.php?id=61577909248975) | **yellow · white · black** (fixed family of 15 themes) |
 | **Thesis Companion** | [page](https://www.facebook.com/profile.php?id=61567854154156) | charcoal · royal blue (+ navy, yellow and red from its posters) |
 | **Artova Research** | [page](https://www.facebook.com/artovasolutions/) | violet · magenta · cyan |
 
@@ -33,13 +33,15 @@ Studio designs are the same for every page, as the team asked. What makes each p
 
 ### Logos
 
+The team's logo files are in `public/logo/<page>/source/`. `python scripts/prepare-logos.py` turns them into what the posters use: a transparent horizontal logo, the symbol, and white versions for dark designs. It also builds `public/favicon.png` (the Artova "A") from `public/logo/favicon.png`.
+
 Drop logo files into `public/logo/<page>/`: `nepal-scholar`, `thesis-companion` or `artova-research`.
 
 - Any file name is the full logo.
 - `*mark*` / `*icon*` / `*symbol*` marks the symbol-only version.
 - `*light*` / `*white*` marks a version for dark backgrounds.
 
-A small Vite plugin (`vite.brandLogos.ts`) picks the files up without code changes. The app reads the logo's main colours and rebuilds the 15 themes from them. Until files are added, the bundled logos in `public/brands/` are used.
+A small Vite plugin (`vite.brandLogos.ts`) picks the files up without code changes. The app reads the logo's main colours and rebuilds the 15 themes from them. Pages without files there fall back to the bundled logos in `public/brands/`. Nepal Scholar keeps its yellow · white · black family whatever its logo colours are.
 
 ## Features
 
