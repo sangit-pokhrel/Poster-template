@@ -88,6 +88,7 @@ export function AppHeader() {
   const canUndo = useEditorStore((s) => s.past.length > 0);
   const canRedo = useEditorStore((s) => s.future.length > 0);
   const resetPoster = useEditorStore((s) => s.resetPoster);
+  const setUi = useUiStore((s) => s.set);
 
   const onReset = async () => {
     const ok = await confirm({
@@ -109,7 +110,7 @@ export function AppHeader() {
           <Icon name="sparkles" size={18} />
         </div>
         <div className="hidden min-w-0 lg:block">
-          <h1 className="text-sm font-bold tracking-wide text-white">TEMPLATE STUDIO</h1>
+          <h1 className="text-sm font-bold tracking-wide text-white">ARTOVA DESIGNS</h1>
           <p className="truncate text-[11px] text-ink-400">Ad posters for Nepal Scholar · Thesis Companion · Artova Research</p>
         </div>
         <BrandSwitcher />
@@ -117,6 +118,7 @@ export function AppHeader() {
 
       <div className="flex items-center gap-2">
         <SaveIndicator />
+        <IconButton icon="info" label="Guide: how Artova Designs works" onClick={() => { setUi('tab', 'guide'); setUi('mobilePane', 'editor'); }} />
         <IconButton icon="undo" label="Undo (Ctrl+Z)" disabled={!canUndo} onClick={undo} />
         <IconButton icon="redo" label="Redo (Ctrl+Shift+Z)" disabled={!canRedo} onClick={redo} />
         <Button icon="reset" onClick={() => void onReset()} className="hidden md:inline-flex">

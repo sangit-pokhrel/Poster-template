@@ -20,6 +20,7 @@ export interface DrawablePoster {
  * are applied by the caller: `drawPoster` for export, Fabric for the live canvas.
  */
 export function drawElementContent(ctx: CanvasRenderingContext2D, el: Drawable, w: number, h: number, env: RenderEnv): void {
+  if (el.showIf && !env.brand[el.showIf].trim()) return;
   switch (el.type) {
     case 'text':
       return drawText(ctx, el.data, w, h, env);
@@ -73,8 +74,9 @@ export function posterImageSources(poster: Pick<DrawablePoster, 'elements'>, env
     if (!el.visible) continue;
     if (el.type === 'image' && el.data.src) srcs.add(el.data.src);
     if (el.type === 'logo') {
-      const light = el.data.tone === 'light' ? (el.data.variant === 'mark' ? a.markLight : a.logoLight) : undefined;
-      srcs.add(light ?? (el.data.variant === 'mark' ? a.mark : a.logo));
+      const light = el.data.tone === 'light';
+      if (el.data.variant !== 'mark') srcs.add((light ? a.logoLight : undefined) ?? a.logo);
+      if (el.data.variant !== 'full') srcs.add((light ? a.markLight : undefined) ?? a.mark);
     }
   }
   return [...srcs];

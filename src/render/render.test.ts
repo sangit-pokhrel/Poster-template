@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { BRANDS } from '../data/brands';
 import { effectiveFrame, elementRect, pxToFrame, frameToPx } from '../utils/aspectRatio';
-import { resolveColor } from './color';
+import { buildLayout } from '../design/registry';
+import { luminance, resolveColor } from './color';
+import { drawElementContent } from './drawPoster';
+import type { Drawable } from './drawPoster';
 import { resolveTokens } from './env';
 import { placeImage } from './image';
 import { buildParagraphs, layoutText, tokenizeWords } from './text';
@@ -106,5 +109,38 @@ describe('buildParagraphs', () => {
   it('keeps highlight flags on plain lines', () => {
     const d = { ...base, text: 'one two\nthree' } as unknown as Parameters<typeof buildParagraphs>[0];
     expect(buildParagraphs(d, fullEnv).map((p) => p.map((w) => w.highlighted))).toEqual([[false, true], [false]]);
+  });
+});
+
+describe('tokens in prose', () => {
+  const fullEnv = { ...env, images: { get: () => null }, mode: 'export' as const };
+  it('highlights every word a highlighted {brand} token becomes', () => {
+    const d = { highlights: [2], uppercase: false, text: 'Why choose {brand}?' } as unknown as Parameters<typeof buildParagraphs>[0];
+    expect(buildParagraphs(d, fullEnv)[0]).toEqual([
+      { text: 'Why', highlighted: false },
+      { text: 'choose', highlighted: false },
+      { text: 'Nepal', highlighted: true },
+      { text: 'Scholar?', highlighted: true },
+    ]);
+  });
+});
+
+describe('brand.pop', () => {
+  it('darkens a light accent until it reads on white, and leaves a dark one alone', () => {
+    const gold = { ...brand, palette: { ...brand.palette, accent: '#f2c94c' } };
+    expect(luminance(resolveColor('brand.pop', gold))).toBeLessThan(luminance('#f2c94c'));
+    expect(1.05 / (luminance(resolveColor('brand.pop', gold)) + 0.05)).toBeGreaterThanOrEqual(3.4);
+    const navy = { ...brand, palette: { ...brand.palette, accent: '#1f2a3c' } };
+    expect(resolveColor('brand.pop', navy)).toBe('#1f2a3c');
+  });
+});
+
+describe('showIf', () => {
+  it('skips elements whose brand contact field is empty', () => {
+    const calls: string[] = [];
+    const ctx = new Proxy({}, { get: (_, k) => (typeof k === 'string' ? () => { calls.push(k); } : undefined) }) as unknown as CanvasRenderingContext2D;
+    const el = { ...buildLayout('studio-why-choose', 'nepal-scholar').elements.find((e) => e.id === 'contact-phone-icon') } as Drawable;
+    drawElementContent(ctx, el, 40, 40, { ...env, images: { get: () => null }, mode: 'export' });
+    expect(calls).toHaveLength(0);
   });
 });

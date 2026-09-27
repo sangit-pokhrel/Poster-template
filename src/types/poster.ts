@@ -9,6 +9,8 @@ export interface PosterMeta {
   date: string;
   /** Free text when `dateMode` is custom. */
   customDate: string;
+  /** Colour theme index (0 = logo colours), or `auto` to follow the daily rotation. */
+  theme: 'auto' | number;
 }
 
 /** One poster = one downloadable image. Single source of truth (proposal §29). */

@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { getAd } from '../../design/registry';
+import { CATEGORIES, KIND_LABEL, getAd, studioInfo } from '../../design/registry';
 import { useActivePoster } from '../../store/selectors';
 import { useUiStore } from '../../store/uiStore';
 import type { EditorMode, EditorTab } from '../../store/uiStore';
@@ -9,6 +9,7 @@ import type { IconName } from '../common/Icon';
 import { ContentEditor } from '../editor/ContentEditor';
 import { DesignEditor } from '../editor/DesignEditor';
 import { PostersPanel } from '../editor/PostersPanel';
+import { GuidePanel } from '../guide/GuidePanel';
 import { TemplateBrowser } from '../templates/TemplateBrowser';
 
 const TABS: ReadonlyArray<{ id: EditorTab; label: string; icon: IconName; advancedOnly?: boolean }> = [
@@ -16,6 +17,7 @@ const TABS: ReadonlyArray<{ id: EditorTab; label: string; icon: IconName; advanc
   { id: 'content', label: 'Content', icon: 'text' },
   { id: 'design', label: 'Design', icon: 'sliders', advancedOnly: true },
   { id: 'posters', label: 'Posters', icon: 'posters' },
+  { id: 'guide', label: 'Guide', icon: 'info' },
 ];
 
 /** Left half of the workspace: every editable part of the poster (proposal §4, §21). */
@@ -27,6 +29,10 @@ export function EditorPanel() {
   const baseId = useId();
   const tabs = TABS.filter((t) => mode === 'advanced' || !t.advancedOnly);
   const tab = tabs.some((t) => t.id === storedTab) ? storedTab : 'content';
+  const ad = getAd(poster.templateId);
+  const ref = studioInfo(ad.id);
+  const category = CATEGORIES.find((c) => c.id === ad.category)?.label ?? ad.category;
+  const adDescription = ref ? `Studio design · reference #${ref.ref}, variation ${ref.variation} · ${category}` : `Brand classic · ${KIND_LABEL[ad.kind]} layout · ${category}`;
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
@@ -76,8 +82,9 @@ export function EditorPanel() {
       </div>
 
       <div className="flex items-center justify-between gap-2 border-b border-ink-800/60 px-4 py-2 text-[11px] text-ink-400">
-        <span className="truncate">
-          Ad: <span className="font-medium text-ink-200">{getAd(poster.templateId).name}</span>
+        <span className="truncate" title={adDescription}>
+          Ad: <span className="font-medium text-ink-200">{ad.name}</span>
+          <span className="hidden sm:inline"> · {adDescription}</span>
         </span>
         {tab !== 'templates' && (
           <button type="button" className="shrink-0 text-brand hover:underline" onClick={() => set('tab', 'templates')}>
@@ -91,6 +98,7 @@ export function EditorPanel() {
         {tab === 'content' && <ContentEditor />}
         {tab === 'design' && <DesignEditor />}
         {tab === 'posters' && <PostersPanel />}
+        {tab === 'guide' && <GuidePanel />}
       </div>
     </section>
   );

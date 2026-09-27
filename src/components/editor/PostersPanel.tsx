@@ -6,7 +6,7 @@ import { useImageUrl } from '../../hooks/useImageUrl';
 import { useThumbnail } from '../../hooks/useThumbnail';
 import { UploadError, importImageFile } from '../../services/imageService';
 import { useEditorStore } from '../../store/editorStore';
-import { buildEnv, useActivePoster, useBrandFor } from '../../store/selectors';
+import { buildEnv, posterTheme, useActivePoster, useBrandFor } from '../../store/selectors';
 import type { BrandOverrides, BrandPalette } from '../../types/brand';
 import type { Poster } from '../../types/poster';
 import { Button, ColorInput, Dropzone, IconButton, Section, cx } from '../common/controls';
@@ -18,7 +18,7 @@ const PosterRow = memo(function PosterRow({ poster, index, active, overrides }: 
   const removePoster = useEditorStore((s) => s.removePoster);
   const count = useEditorStore((s) => s.posters.length);
   const env = useMemo(() => buildEnv(poster, overrides, 'export'), [poster, overrides]);
-  const thumb = useThumbnail(`${poster.id}:${poster.updatedAt}:${JSON.stringify(overrides ?? {})}`, poster, poster.ratio, env, 120);
+  const thumb = useThumbnail(`${poster.id}:${poster.updatedAt}:${posterTheme(poster, overrides).index}:${JSON.stringify(overrides ?? {})}`, poster, poster.ratio, env, 120);
   const heading = poster.elements.find((e) => e.type === 'text' && (e.role === 'heading' || e.role === 'quote'));
   const title = heading?.type === 'text' ? heading.data.text : getAd(poster.templateId).name;
 

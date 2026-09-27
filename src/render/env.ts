@@ -27,7 +27,7 @@ export function resolveFontFamily(family: string, brand: Brand): string {
   return family === 'brand.heading' ? brand.fonts.heading : family === 'brand.body' ? brand.fonts.body : family;
 }
 
-/** {brand} {tagline} {website} {handle} {phone} {email} {date} */
+/** {brand} {tagline} {website} {handle} {phone} {email} {address} {date} */
 export function resolveTokens(text: string, env: Pick<RenderEnv, 'brand' | 'dateText'>): string {
   const { brand } = env;
   const values: Record<string, string> = {
@@ -37,6 +37,7 @@ export function resolveTokens(text: string, env: Pick<RenderEnv, 'brand' | 'date
     handle: brand.handle,
     phone: brand.phone,
     email: brand.email,
+    address: brand.address,
     date: env.dateText,
   };
   const sub = (s: string) => s.replace(/\{(\w+)\}/g, (m, key: string) => values[key] ?? m);

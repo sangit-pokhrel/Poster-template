@@ -118,6 +118,7 @@ function LogoEditor({ el }: { el: LogoElement }) {
         onChange={(variant) => updateData<'logo'>(el.id, { variant })}
         options={[
           { value: 'full', label: 'Full logo' },
+          { value: 'lockup', label: 'Symbol + name' },
           { value: 'mark', label: 'Symbol only' },
         ]}
       />

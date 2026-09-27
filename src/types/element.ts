@@ -115,7 +115,8 @@ export interface ImageData {
 }
 
 export interface LogoData {
-  variant: 'full' | 'mark';
+  /** `lockup` = symbol + brand name set in the heading font (a wide logo file is used as-is). */
+  variant: 'full' | 'mark' | 'lockup';
   /** `light` uses the brand's light artwork (or a card when none exists). */
   tone: 'dark' | 'light';
   card: boolean;
@@ -198,7 +199,11 @@ interface ElementBase {
   locked: boolean;
   /** Editable elements appear in Quick Edit. */
   editable: boolean;
+  /** Only drawn when this brand contact field is filled in (e.g. a phone icon next to {phone}). */
+  showIf?: ContactField;
 }
+
+export type ContactField = 'phone' | 'email' | 'website' | 'address' | 'handle';
 
 export type TextElement = ElementBase & { type: 'text'; data: TextData };
 export type ImageElement = ElementBase & { type: 'image'; data: ImageData };

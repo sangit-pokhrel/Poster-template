@@ -11,16 +11,64 @@ export function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }
 
+export interface Hsl {
+  h: number;
+  s: number;
+  l: number;
+}
+
+export function hexToHsl(hex: string): Hsl {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  const n = m?.[1] ? parseInt(m[1], 16) : 0;
+  const r = ((n >> 16) & 255) / 255;
+  const g = ((n >> 8) & 255) / 255;
+  const b = (n & 255) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return { h: 0, s: 0, l: l * 100 };
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  const h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return { h: h * 60, s: s * 100, l: l * 100 };
+}
+
+export function hslToHex({ h, s, l }: Hsl): string {
+  const sat = Math.max(0, Math.min(100, s)) / 100;
+  const lig = Math.max(0, Math.min(100, l)) / 100;
+  const k = (n: number) => (n + (((h % 360) + 360) % 360) / 30) % 12;
+  const a = sat * Math.min(lig, 1 - lig);
+  const f = (n: number) => lig - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  return `#${[f(0), f(8), f(4)].map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('')}`;
+}
+
+/** WCAG contrast ratio of a colour against white. */
+const contrastOnWhite = (hex: string) => 1.05 / (luminance(hex) + 0.05);
+
+const popCache = new Map<string, string>();
+
+/** The accent, darkened just enough to read as text on white (e.g. gold → deep gold). */
+export function readableOnLight(hex: string): string {
+  const hit = popCache.get(hex);
+  if (hit) return hit;
+  const c = hexToHsl(hex);
+  let out = hex;
+  for (let l = c.l; l > 10 && contrastOnWhite(out) < 3.4; l -= 3) out = hslToHex({ ...c, l });
+  popCache.set(hex, out);
+  return out;
+}
+
 /**
  * Resolves brand tokens: `brand.accent` → palette colour, `brand.primary/40` → 40 % alpha.
+ * `brand.pop` is the accent made readable on light backgrounds.
  * Literal colours pass through untouched.
  */
 export function resolveColor(value: ColorValue, brand: Brand): string {
   const m = /^brand\.(\w+)(?:\/(\d{1,3}))?$/.exec(value);
   if (!m) return value;
-  const key = m[1] as keyof BrandPalette;
-  if (!PALETTE_KEYS.has(key)) return value;
-  const base = brand.palette[key];
+  const key = m[1] as keyof BrandPalette | 'pop';
+  if (key !== 'pop' && !PALETTE_KEYS.has(key)) return value;
+  const base = key === 'pop' ? readableOnLight(brand.palette.accent) : brand.palette[key];
   return m[2] ? hexToRgba(base, Math.min(100, Number(m[2])) / 100) : base;
 }
 

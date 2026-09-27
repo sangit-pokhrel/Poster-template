@@ -289,7 +289,58 @@ export function logoSource(d: LogoData, env: RenderEnv): { src: string; forceCar
   return { src: d.variant === 'mark' ? a.mark : a.logo, forceCard: d.tone === 'light' };
 }
 
+/** Symbol + two-line brand name, like a letterhead. Wide logo files already contain the name. */
+function drawLockup(ctx: CanvasRenderingContext2D, d: LogoData, w: number, h: number, env: RenderEnv): void {
+  const a = env.brand.assets;
+  const full = env.images.get(d.tone === 'light' ? (a.logoLight ?? a.logo) : a.logo);
+  if (full && full.naturalWidth / full.naturalHeight >= 1.8) return drawLogo(ctx, { ...d, variant: 'full' }, w, h, env);
+  const light = d.tone === 'light';
+  const markSrc = light ? (a.markLight ?? a.mark) : a.mark;
+  const disc = light && !a.markLight;
+  const mark = env.images.get(markSrc);
+  const words = env.brand.name.toLocaleUpperCase().split(/\s+/).filter(Boolean);
+  const lines = words.length > 1 ? [words[0] ?? '', words.slice(1).join(' ')] : [words[0] ?? ''];
+  const family = fontStack('brand.heading', env.brand);
+  let size = h * (lines.length > 1 ? 0.36 : 0.46);
+  const markH = h;
+  const markW = mark ? (markH * mark.naturalWidth) / mark.naturalHeight : markH;
+  const gap = h * 0.16;
+  ctx.save();
+  ctx.font = `800 ${size}px ${family}`;
+  ctx.letterSpacing = `${size * 0.04}px`;
+  let textW = Math.max(...lines.map((l) => ctx.measureText(l).width));
+  const fit = Math.min(1, (w - markW - gap) / Math.max(1, textW));
+  if (fit < 1) {
+    size *= fit;
+    ctx.font = `800 ${size}px ${family}`;
+    ctx.letterSpacing = `${size * 0.04}px`;
+    textW = Math.max(...lines.map((l) => ctx.measureText(l).width));
+  }
+  const total = markW + gap + textW;
+  const x0 = d.align === 'left' ? 0 : d.align === 'right' ? w - total : (w - total) / 2;
+  if (disc) {
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(x0 + markW / 2, h / 2, markW * 0.62, markH * 0.62, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  if (mark) {
+    const s = disc ? 0.78 : 1;
+    ctx.drawImage(mark, x0 + (markW * (1 - s)) / 2, (h - markH * s) / 2, markW * s, markH * s);
+  }
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+  const lh = size * 1.08;
+  const y0 = h / 2 - ((lines.length - 1) * lh) / 2;
+  lines.forEach((line, i) => {
+    ctx.fillStyle = resolveColor(i === 0 ? (light ? '#ffffff' : 'brand.primary') : light ? 'brand.accent' : 'brand.pop', env.brand);
+    ctx.fillText(line, x0 + markW + gap, y0 + i * lh);
+  });
+  ctx.restore();
+}
+
 export function drawLogo(ctx: CanvasRenderingContext2D, d: LogoData, w: number, h: number, env: RenderEnv): void {
+  if (d.variant === 'lockup') return drawLockup(ctx, d, w, h, env);
   const { src, forceCard } = logoSource(d, env);
   const img = env.images.get(src);
   const card = d.card || forceCard;

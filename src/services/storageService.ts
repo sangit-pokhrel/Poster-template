@@ -5,6 +5,7 @@
  * template so older saves keep working when templates gain new fields.
  */
 import { BRANDS, isBrandId } from '../data/brands';
+import { THEME_COUNT } from '../design/themes';
 import { buildLayout, isAdId } from '../design/registry';
 import type { EditorState, PersistedEditor } from '../store/editorStore';
 import { useEditorStore } from '../store/editorStore';
@@ -44,6 +45,7 @@ function sanitizeMeta(raw: unknown): PosterMeta {
     dateMode: m.dateMode === 'english' || m.dateMode === 'custom' ? m.dateMode : 'nepali',
     date: typeof m.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(m.date) ? m.date : todayIso(),
     customDate: typeof m.customDate === 'string' ? m.customDate : '',
+    theme: typeof m.theme === 'number' && Number.isInteger(m.theme) && m.theme >= 0 && m.theme < THEME_COUNT ? m.theme : 'auto',
   };
 }
 

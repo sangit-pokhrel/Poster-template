@@ -1,10 +1,10 @@
-import type { Brand, BrandId, BrandOverrides } from '../types/brand';
+import type { Brand, BrandAssets, BrandId, BrandOverrides } from '../types/brand';
+import { droppedLogos } from '../services/logoFolder';
 
 /**
- * The two Facebook pages this studio produces posters for.
- * Colours are sampled from each logo; taglines and locations come from the
- * pages' public descriptions. Phone / website / email are left blank for the
- * team to fill in (Brand kit), rather than guessed.
+ * The three Facebook pages this studio produces posters for.
+ * Colours are sampled from each logo; contact details come from the pages'
+ * own posters (design-references/). Everything is editable in the Brand kit.
  */
 export const BRANDS: Record<BrandId, Brand> = {
   'nepal-scholar': {
@@ -14,8 +14,9 @@ export const BRANDS: Record<BrandId, Brand> = {
     facebookUrl: 'https://www.facebook.com/profile.php?id=61577909248975',
     website: '',
     handle: 'Nepal Scholar · Kathmandu',
-    phone: '',
-    email: '',
+    phone: '9809816596',
+    email: 'nepalscholar61@gmail.com',
+    address: 'Chardobato, Thimi, Bhaktapur',
     palette: {
       primary: '#1f2a3c', // slate navy (mountain / book)
       secondary: '#6d2f2c', // maroon (book gradient)
@@ -30,6 +31,8 @@ export const BRANDS: Record<BrandId, Brand> = {
       logoLight: '/brands/nepal-scholar/logo-light.png',
       markLight: '/brands/nepal-scholar/mark-light.png',
     },
+    // Poster navy, sunflower gold and heritage red from the page's own posters
+    themeSeeds: ['#0f2a4a', '#f2a900', '#a3221d', '#1d4e89'],
   },
   'thesis-companion': {
     id: 'thesis-companion',
@@ -38,8 +41,9 @@ export const BRANDS: Record<BrandId, Brand> = {
     facebookUrl: 'https://www.facebook.com/profile.php?id=61567854154156',
     website: '',
     handle: 'Thesis Companion · Kathmandu',
-    phone: '',
-    email: '',
+    phone: '970-7711397',
+    email: 'thesiscompanionnepal@gmail.com',
+    address: 'Chardobato, Thimi',
     palette: {
       primary: '#111111', // monochrome roundel
       secondary: '#3b3b3b',
@@ -55,6 +59,8 @@ export const BRANDS: Record<BrandId, Brand> = {
       logoLight: '/brands/thesis-companion/logo-light.png',
       markLight: '/brands/thesis-companion/mark-light.png',
     },
+    // Navy, royal blue, warm yellow and campaign red from the page's posters
+    themeSeeds: ['#0b2d52', '#1e5bd8', '#ffc21a', '#e11d2e'],
   },
   'artova-research': {
     id: 'artova-research',
@@ -62,10 +68,11 @@ export const BRANDS: Record<BrandId, Brand> = {
     tagline: 'Research · Data · Innovation',
     // Logo and location from the Artova Solutions page (Kirtipur); replace in the Brand kit if needed.
     facebookUrl: 'https://www.facebook.com/artovasolutions/',
-    website: '',
+    website: 'www.artovaresearch.netlify.app',
     handle: 'Artova Research · Kirtipur',
-    phone: '',
-    email: '',
+    phone: '9744988551',
+    email: 'artovaresearch@gmail.com',
+    address: 'Kirtipur, Kathmandu',
     palette: {
       primary: '#4c0ba8', // deep violet (logo background)
       secondary: '#9b00e0', // bright violet (logo gradient end)
@@ -80,8 +87,25 @@ export const BRANDS: Record<BrandId, Brand> = {
       logoLight: '/brands/artova-research/logo-light.png',
       markLight: '/brands/artova-research/mark-light.png',
     },
+    // Indigo, electric purple and lavender from the page's posters
+    themeSeeds: ['#2e1065', '#7c3aed', '#a78bfa', '#1e1b4b'],
   },
 };
+
+/** Logos dropped into public/logo/<brand>/ replace the bundled artwork. */
+function withDroppedLogo(assets: BrandAssets, id: BrandId): BrandAssets {
+  const d = droppedLogos[id];
+  if (!d) return assets;
+  return {
+    logo: d.logo,
+    mark: d.mark ?? d.logo,
+    // Without a dedicated light version, templates put the logo on a card on dark backgrounds.
+    logoLight: d.logoLight,
+    markLight: d.markLight ?? (d.mark ? undefined : d.logoLight),
+  };
+}
+
+for (const brand of Object.values(BRANDS)) brand.assets = withDroppedLogo(brand.assets, brand.id);
 
 export const BRAND_IDS = Object.keys(BRANDS) as BrandId[];
 export const DEFAULT_BRAND_ID: BrandId = 'nepal-scholar';

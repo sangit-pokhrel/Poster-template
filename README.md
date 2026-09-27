@@ -1,49 +1,62 @@
-# Template Studio
+# Artova Designs
 
-Ad and promotional poster generator for three academic-services pages. Each page has **its own design system**, not just its own colours:
+Poster studio for three academic-services Facebook pages. Pick a design, type your words, add a photo, and download a finished ad for Facebook and Instagram.
 
-| Brand | Design system | Facebook |
+| Page | Facebook | Logo colours |
 |---|---|---|
-| **Nepal Scholar** | *Heritage Editorial*: navy & cream with gold hairlines, Playfair Display, arched photos, gold seals | [page](https://www.facebook.com/profile.php?id=61577909248975) |
-| **Thesis Companion** | *Swiss Monochrome*: black & white blocks, Montserrat Black, B&W photos, one blue accent | [page](https://www.facebook.com/profile.php?id=61567854154156) |
-| **Artova Research** | *Gradient Tech*: violet gradients, glass cards, cyan glow, Space Grotesk, faceted shapes | [page](https://www.facebook.com/artovasolutions/) |
+| **Nepal Scholar** | [page](https://www.facebook.com/profile.php?id=61577909248975) | navy · maroon · gold |
+| **Thesis Companion** | [page](https://www.facebook.com/profile.php?id=61567854154156) | charcoal · royal blue (+ navy, yellow and red from its posters) |
+| **Artova Research** | [page](https://www.facebook.com/artovasolutions/) | violet · magenta · cyan |
 
-Pick one of **100 ready-made ads** on the left, change the words and photo, and the poster on the right updates as you type. Switch brands in the header and the same ad is redrawn in that brand's own layout and style, keeping your text and photos.
+Built from [`proposal.md`](proposal.md). The section-by-section mapping is in [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md). The app has a **Guide** tab (ⓘ in the header) that explains all of this to the team.
 
-Built from [`proposal.md`](proposal.md). The section-by-section mapping is in [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md).
+## What's inside
 
-## Ad library: 100 ads in 12 categories
+| | Count | Notes |
+|---|---:|---|
+| Reference posters rebuilt | **31** | Every unique image in [`design-references/`](design-references/README.md). 32–44 are duplicates of 23–31. |
+| Studio designs | **62** | 2 variations per reference (usually light + dark, mirrored), shared by all pages |
+| Brand classics | **100** ads | Drawn by each page's own design system: 14 layouts per page (Heritage Editorial, Swiss Monochrome, Gradient Tech) |
+| Distinct designs per page | **76** | 62 studio + 14 classic layouts, **228** across the three pages |
+| Colour themes per page | **15** | Generated from the logo colours; one rotates in automatically each day |
+| Featured per day | **15** | A new daily pick of studio designs for each page |
 
-| Category | Examples |
-|---|---|
-| Thesis | thesis support, chapter-by-chapter, viva prep, MPhil/PhD mentoring, submission countdown |
-| Proposal | proposal writing, topic selection, grant proposals, common mistakes |
-| Data Analysis | SPSS, R/Python/STATA, SEM, qualitative & NVivo, 48-hour analysis |
-| Publication | journal support, Scopus/WoS, predatory-journal tips, rejected-paper rescue |
-| Editing & Plagiarism | proofreading, Turnitin report, similarity reduction, APA formatting |
-| Assignments | assignment help, internship & project reports, case studies |
-| Study Abroad | SOP, application kit, fully funded scholarships, admission roadmap |
-| Training | webinars, SPSS course, bootcamp, curriculum, seats-left countdown |
-| Offers | Dashain & Tihar offers, packages, student discount, referral, flash sale, plans |
-| Reviews & Results | testimonials, impact stats, why choose us, guarantee, before/after |
-| Tips & Quotes | writing tips, myths vs facts, research quotes, free tools |
-| Brand & Contact | contact us, about, hiring, opening hours, how we work, follower milestone |
+### Studio designs and colour themes
 
-Each ad uses one of 14 layouts: hero, services, offer, stats, steps, review, event, countdown, notice, tip, checklist, compare, quote and contact. Each brand implements all 14 in its own style, so the library covers **300 distinct designs**.
+Studio designs are the same for every page, as the team asked. What makes each page's poster its own:
+
+- **Logo**: a "symbol + name" lockup in the page's heading font (wide logo files are used as-is).
+- **Contact details**: phone, email, website, address and handle. Empty fields and their icons are left out.
+- **Colour theme**: 15 per page. Theme 1 is the logo palette; the others pair a dark base from the logo with a contrasting accent, using logo colours first and then harmonies. Accents are automatically deepened on white and lightened on dark backgrounds, so text stays readable in every theme.
+
+**Auto · daily** moves each poster to a new theme every day, and the three pages never share a theme on the same day. Picking a swatch pins that theme.
+
+### Logos
+
+Drop logo files into `public/logo/<page>/`: `nepal-scholar`, `thesis-companion` or `artova-research`.
+
+- Any file name is the full logo.
+- `*mark*` / `*icon*` / `*symbol*` marks the symbol-only version.
+- `*light*` / `*white*` marks a version for dark backgrounds.
+
+A small Vite plugin (`vite.brandLogos.ts`) picks the files up without code changes. The app reads the logo's main colours and rebuilds the 15 themes from them. Until files are added, the bundled logos in `public/brands/` are used.
 
 ## Features
 
 - **50 / 50 workspace**: editor left, live poster right. **Minimize** the preview to a floating dock or go **full screen** with zoom. On phones the editor and preview become tabs.
-- **Ad browser**: search, 12 category filters, and lazy-loaded thumbnails drawn in the active brand's design.
-- **Quick edit**: every headline, service, step, stat, bullet list, badge, price, CTA, photo, date and footer. Click words to highlight them.
-- **Advanced edit**: font, size, weight, colour, alignment, spacing, position, size, rotation, opacity, icon picker (49 icons), lock, visibility and layer order.
-- **On-canvas editing** (Fabric.js): select, drag, resize with live text re-wrap, rotate, snap to centre, arrow-key nudge, double-click to edit.
-- **Photos**: drag and drop or upload JPG, PNG or WebP (up to 10 MB), or pick from 27 sample photos. Cover or contain, zoom and pan. Uploads are stored in IndexedDB.
-- **Sizes**: 1:1, 4:5, 16:9 and 9:16. Layouts are normalized, so every ad adapts.
-- **Date**: Nepali (exact Bikram Sambat), English or custom.
-- **Export**: PNG or JPG at 1×, 2× or 3×, copy to clipboard, and **all posters as one ZIP**. Exports use a dedicated off-screen canvas, so selection handles never appear in files.
-- **Several posters per session**, auto-save, undo/redo, and reset with confirmation.
-- **Brand kit** per page: phone, website, email, handle, colours and logo. Blank contact fields are dropped from footers.
+- **Ad browser**: *Today's 15*, *Studio designs*, *Brand classics*, 12 categories, search, lazy thumbnails in the current theme, and a line explaining each filter.
+- **Guide tab**:
+  - today's theme for each page and today's 15;
+  - how the app works, library statistics, all 15 themes;
+  - page details and logo instructions;
+  - editing tips and keyboard shortcuts;
+  - export sizes per platform, privacy, and an FAQ.
+- **Quick edit**: headlines, services, steps, stats, lists, badges, prices, CTAs, photos, date and footer. Click words to highlight them. Tokens such as `{brand}` and `{phone}` make one text work for all pages.
+- **Advanced edit**: font, size, weight, colour, alignment, spacing, position, size, rotation, opacity, icon picker, logo style, lock, visibility and layer order.
+- **On-canvas editing** (Fabric.js): select, drag, resize with live text re-wrap, rotate, snap, nudge, and double-click to edit.
+- **Photos**: drag and drop or upload JPG, PNG or WebP (up to 10 MB), or use 27 sample photos. Cover or contain, zoom and pan. Uploads are stored in IndexedDB.
+- **Sizes**: 4:5, 1:1, 9:16 and 16:9. **Export** as PNG or JPG at 1×, 2× or 3×, copy to clipboard, or download **all posters as one ZIP**.
+- **Several posters per session**, auto-save, undo/redo, and reset with confirmation. **Brand kit** per page.
 
 ## Run
 
@@ -56,7 +69,7 @@ npm run dev -- --host    # also reachable from phones on the same Wi-Fi
 | Script | |
 |---|---|
 | `npm run build` | typecheck + production build → `dist/` |
-| `npm run typecheck` / `npm run lint` / `npm test` | strict TS · ESLint · Vitest (338 tests, incl. every ad × brand layout) |
+| `npm run typecheck` / `npm run lint` / `npm test` | strict TS · ESLint · Vitest (544 tests: every design × page, theme contrast, rotation, library integrity) |
 
 Deploy `dist/` to any static host. `public/_redirects` is included for Netlify.
 
@@ -65,26 +78,22 @@ Deploy `dist/` to any static host. `public/_redirects` is included for Netlify.
 ```text
 src/
 ├── app/              App shell (brand-accented UI, shortcuts)
-├── components/       layout · templates (ad browser) · editor · canvas · common
+├── components/       layout · templates (ad browser, theme picker) · editor · guide · canvas · common
 ├── design/
-│   ├── ads/          100 ad definitions: content only (headline, items, price, CTA…)
-│   ├── systems/      one design system per brand: 14 layouts each
-│   ├── builders.ts   layout DSL (text, image, logo, shape, badge, icon, glow…)
-│   └── registry.ts   ads, categories, search, buildLayout(ad, brand)
-├── data/brands.ts    the three brand kits
-├── render/           pure Canvas 2D drawing: text, bullets, images, shapes, badges, icons, logo
-├── services/         Fabric stage · export · images · IndexedDB · storage · fonts · templates
-├── store/            Zustand: editorStore (posters, history) · uiStore
-├── types/            brand · element · template (ads, layouts) · poster
-└── utils/            aspect ratios & frames · dates · ids
+│   ├── studio/       62 shared designs rebuilt from design-references/ (kit.ts + refsA/B/C.ts)
+│   ├── ads/          100 brand-classic ad texts
+│   ├── systems/      one design system per page (14 layouts each)
+│   ├── themes.ts     15 logo-based colour themes per page, daily rotation, daily picks
+│   ├── builders.ts   layout DSL (text, image, logo, shape, badge, icon…)
+│   └── registry.ts   library, filters, search, buildLayout(ad, page)
+├── data/brands.ts    the three brand kits (contacts from the pages' own posters)
+├── render/           pure Canvas 2D drawing shared by preview, thumbnails and export
+├── services/         Fabric stage · export · images · IndexedDB · storage · fonts · logo folder & colours
+├── store/            Zustand: editorStore (posters, history) · uiStore · selectors (theme → render env)
+└── types/            brand · element · template · poster
+vite.brandLogos.ts    exposes public/logo/<page>/ files as `virtual:brand-logos`
 ```
 
-### Adding an ad
+### Adding a studio design
 
-Add an entry in `src/design/ads/*.ts` with a category, one of the 14 layout kinds, and its content. It appears in all three brand designs automatically, and the tests check its geometry in every brand.
-
-### Changing a brand's look
-
-Each brand's style lives in `src/design/systems/<brand>.ts`. Colours, contact details and the logo can also be changed in the app under **Posters → Brand kit**. Logo files are in `public/brands/<brand>/` (`logo.png`, `mark.png`, plus `-light` versions for dark backgrounds).
-
-> **Artova Research:** the logo and location currently come from the *Artova Solutions* Facebook page, the only Artova page found online. Replace the files in `public/brands/artova-research/`, or upload a new logo in the Brand kit, if Artova Research uses a different one.
+Add an `entry(ref, { id, name, category, kind, content }, build)` in `src/design/studio/`. Use the kit helpers (`headline`, `itemGrid`, `contactRow`, `footerBar`…) and palette tokens only (`D`, `M`, `A`, `POP`, `INK`, `PAPER`). The design then appears for all three pages in all 15 themes, and the tests check its geometry and colours.

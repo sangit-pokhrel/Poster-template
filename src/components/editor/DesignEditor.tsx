@@ -168,7 +168,7 @@ function LogoStyleEditor({ el }: { el: LogoElement }) {
   const d = el.data;
   return (
     <Section title="Logo" icon="sparkles">
-      <Segmented label="Artwork" value={d.variant} onChange={(variant) => updateData<'logo'>(el.id, { variant })} options={[{ value: 'full', label: 'Full logo' }, { value: 'mark', label: 'Symbol' }]} />
+      <Segmented label="Artwork" value={d.variant} onChange={(variant) => updateData<'logo'>(el.id, { variant })} options={[{ value: 'full', label: 'Full logo' }, { value: 'lockup', label: 'Symbol + name' }, { value: 'mark', label: 'Symbol' }]} />
       <Segmented label="Background" value={d.tone} onChange={(tone) => updateData<'logo'>(el.id, { tone })} options={[{ value: 'dark', label: 'On light bg' }, { value: 'light', label: 'On dark bg' }]} />
       <Toggle label="White card behind logo" checked={d.card} onChange={(card) => updateData<'logo'>(el.id, { card })} />
       <Segmented label="Align" value={d.align} onChange={(align) => updateData<'logo'>(el.id, { align })} options={[{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }]} />

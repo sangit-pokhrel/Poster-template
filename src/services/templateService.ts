@@ -5,7 +5,7 @@ import type { Poster, PosterMeta } from '../types/poster';
 import { todayIso } from '../utils/date';
 import { newId } from '../utils/id';
 
-export const DEFAULT_META: PosterMeta = { dateMode: 'nepali', date: todayIso(), customDate: '' };
+export const DEFAULT_META: PosterMeta = { dateMode: 'nepali', date: todayIso(), customDate: '', theme: 'auto' };
 export const DEFAULT_RATIO = '4:5' as const;
 
 /** Fresh, deep-copied elements for an ad in a brand's design (layout data is never mutated). */

@@ -15,12 +15,13 @@ export const FONT_FAMILIES = [
   'Merriweather',
   'Oswald',
   'Bebas Neue',
+  'Caveat',
   'Mukta',
   'Noto Sans Devanagari',
 ] as const;
 
 const SAMPLE = 'Aa१२ कखग';
-const WEIGHTS = [400, 500, 600, 700, 800] as const;
+const WEIGHTS = [400, 500, 600, 700, 800, 900] as const;
 const loaded = new Map<string, Promise<void>>();
 
 export function ensureFonts(families: readonly string[]): Promise<void> {

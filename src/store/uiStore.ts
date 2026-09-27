@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { AdCategory } from '../types/template';
+import type { LibraryFilter } from '../design/registry';
 
 export type ViewMode = 'split' | 'minimized';
 export type EditorMode = 'quick' | 'advanced';
-export type EditorTab = 'templates' | 'content' | 'design' | 'posters';
+export type EditorTab = 'templates' | 'content' | 'design' | 'posters' | 'guide';
 export type SaveStatus = 'saved' | 'saving' | 'error';
 export type ExportFormat = 'png' | 'jpg';
 export type MobilePane = 'editor' | 'preview';
@@ -16,7 +16,7 @@ export interface UiState {
   previewZoom: 'fit' | number;
   editorMode: EditorMode;
   tab: EditorTab;
-  category: AdCategory | 'all';
+  category: LibraryFilter;
   /** Template search text. */
   search: string;
   exportFormat: ExportFormat;
@@ -41,7 +41,7 @@ export const useUiStore = create<UiState>()(
       previewZoom: 'fit',
       editorMode: 'quick',
       tab: 'templates',
-      category: 'all',
+      category: 'today',
       search: '',
       exportFormat: 'png',
       exportScale: 1,
@@ -53,7 +53,7 @@ export const useUiStore = create<UiState>()(
       requestFocus: (elementId) => set({ focusRequest: { elementId, nonce: Date.now() }, tab: 'content' }),
     }),
     {
-      name: 'template-studio:ui:v2',
+      name: 'template-studio:ui:v3',
       storage: createJSONStorage(() => localStorage),
       version: 1,
       // Per-browser preferences only; transient flags are not restored.

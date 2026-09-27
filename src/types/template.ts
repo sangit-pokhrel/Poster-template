@@ -78,6 +78,11 @@ export interface AdDefinition {
   category: AdCategory;
   kind: AdKind;
   content: AdContent;
+  /**
+   * Shared studio design (same layout for every brand, coloured by the theme).
+   * Absent = the brand's own design system draws it from `kind`.
+   */
+  design?: string;
 }
 
 /** What a design system produces for one ad. */

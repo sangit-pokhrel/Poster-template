@@ -5,6 +5,7 @@
  */
 import type {
   BadgeData,
+  ContactField,
   ElementRole,
   Fill,
   Frame,
@@ -33,6 +34,7 @@ export interface CommonOpts {
   editable?: boolean;
   visible?: boolean;
   aspect?: number;
+  showIf?: ContactField;
   ratios?: Partial<Record<Ratio, Partial<Frame>>>;
 }
 
@@ -44,6 +46,7 @@ function base(id: string, role: ElementRole, frame: Frame, name: string, o: Comm
     frame,
     ratioFrames: o.ratios ?? {},
     ...(o.aspect ? { aspect: o.aspect } : {}),
+    ...(o.showIf ? { showIf: o.showIf } : {}),
     rotation: o.rotation ?? 0,
     opacity: o.opacity ?? 1,
     visible: o.visible ?? true,

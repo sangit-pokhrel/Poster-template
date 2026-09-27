@@ -141,10 +141,22 @@ export function buildParagraphs(d: TextData, env: RenderEnv): LayoutInput['parag
   const upper = (s: string) => (d.uppercase ? s.toLocaleUpperCase() : s);
   return d.text.split('\n').map((line, p) => {
     if (/\{\w+\}/.test(line)) {
-      return upper(resolveTokens(line, env))
-        .split(/\s+/)
-        .filter(Boolean)
-        .map((text) => ({ text, highlighted: false }));
+      // Contact lines ("{phone} • {website}") drop empty fields with their separators.
+      if (/[•|]/.test(line)) {
+        return upper(resolveTokens(line, env))
+          .split(/\s+/)
+          .filter(Boolean)
+          .map((text) => ({ text, highlighted: false }));
+      }
+      // Prose with a token ("Why choose {brand}?"): a highlighted token highlights every word it becomes.
+      return words
+        .filter((w) => w.paragraph === p)
+        .flatMap((w) =>
+          upper(resolveTokens(w.text, env))
+            .split(/\s+/)
+            .filter(Boolean)
+            .map((text) => ({ text, highlighted: highlighted.has(w.index) })),
+        );
     }
     return words.filter((w) => w.paragraph === p).map((w) => ({ text: upper(w.text), highlighted: highlighted.has(w.index) }));
   });
